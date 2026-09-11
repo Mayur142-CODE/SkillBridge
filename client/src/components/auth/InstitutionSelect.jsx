@@ -16,12 +16,41 @@ export default function InstitutionSelect({
   const [loadError, setLoadError] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [placement, setPlacement] = useState('bottom');
 
   const containerRef = useRef(null);
   const searchInputRef = useRef(null);
   const id = useId();
   const errorId = `${id}-error`;
   const hintId = `${id}-hint`;
+
+  // Dynamically calculate whether dropdown should open downward or upward
+  const updatePlacement = () => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const viewportHeight = window.innerHeight;
+    const spaceBelow = viewportHeight - rect.bottom - 16;
+    const spaceAbove = rect.top - 16;
+    const menuThreshold = 260;
+
+    if (spaceBelow < menuThreshold && spaceAbove > spaceBelow) {
+      setPlacement('top');
+    } else {
+      setPlacement('bottom');
+    }
+  };
+
+  // Re-calculate placement on window resize or scroll while open
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleReposition = () => updatePlacement();
+    window.addEventListener('resize', handleReposition, { passive: true });
+    window.addEventListener('scroll', handleReposition, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener('resize', handleReposition);
+      window.removeEventListener('scroll', handleReposition, { capture: true });
+    };
+  }, [isOpen]);
 
   // Fetch verified institutions directly from the Users collection via API
   useEffect(() => {
@@ -113,15 +142,26 @@ export default function InstitutionSelect({
   };
 
   const toggleDropdown = () => {
+    if (!isOpen) {
+      updatePlacement();
+    }
     setIsOpen((prev) => !prev);
     setSearchTerm('');
   };
+
+  // When opened downward, dynamically reserve 265px so subsequent form fields and action buttons are pushed down
+  const reservedMargin = isOpen && placement === 'bottom' ? '265px' : '0px';
 
   return (
     <div
       ref={containerRef}
       className={`form-group institution-select ${className}`.trim()}
-      style={{ position: 'relative' }}
+      style={{
+        position: 'relative',
+        zIndex: isOpen ? 50 : 1,
+        marginBottom: reservedMargin,
+        transition: 'margin-bottom 0.22s cubic-bezier(0.16, 1, 0.3, 1)',
+      }}
     >
       {label && (
         <label htmlFor={id} className="form-label">
@@ -203,23 +243,34 @@ export default function InstitutionSelect({
         />
       </button>
 
-      {/* Dropdown Menu */}
+      {/* Dropdown Menu — Intelligently positioned upward or downward */}
       {isOpen && (
         <div
           className="institution-select__menu animate-fade-in"
           role="listbox"
           style={{
             position: 'absolute',
-            top: 'calc(100% + 6px)',
+            ...(placement === 'top'
+              ? {
+                  bottom: 'calc(100% + 8px)',
+                  top: 'auto',
+                  boxShadow:
+                    '0 -12px 28px -4px rgba(41, 37, 43, 0.14), 0 -6px 12px -2px rgba(41, 37, 43, 0.08)',
+                }
+              : {
+                  top: 'calc(100% + 6px)',
+                  bottom: 'auto',
+                  boxShadow:
+                    '0 12px 28px -4px rgba(41, 37, 43, 0.14), 0 6px 12px -2px rgba(41, 37, 43, 0.08)',
+                }),
             left: 0,
             right: 0,
             zIndex: 150,
             backgroundColor: 'var(--color-surface)',
             border: '1px solid var(--color-border)',
             borderRadius: 'var(--radius-md)',
-            boxShadow: 'var(--shadow-lg)',
             overflow: 'hidden',
-            maxHeight: '340px',
+            maxHeight: '250px',
             display: 'flex',
             flexDirection: 'column',
           }}
@@ -233,6 +284,7 @@ export default function InstitutionSelect({
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
+              flexShrink: 0,
             }}
           >
             <Search size={16} style={{ color: 'var(--color-ink-muted)' }} />
@@ -256,10 +308,12 @@ export default function InstitutionSelect({
 
           {/* Institution List from Users Table */}
           <div
+            className="institution-select__list"
             style={{
               overflowY: 'auto',
               flex: 1,
               padding: '6px 0',
+              maxHeight: '190px',
             }}
           >
             {loading ? (

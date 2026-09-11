@@ -434,8 +434,8 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
 }
 .form-grid > * {
-  margin-top: 0 !important;
-  margin-bottom: 0 !important;
+  margin-top: 0;
+  margin-bottom: 0;
   min-width: 0;
 }
 .form-grid-full {
@@ -443,6 +443,30 @@ h1, h2, h3, h4, h5, h6 {
 }
 .form-grid-half {
   grid-column: span 1;
+}
+
+/* ── Custom Institution Select Component ── */
+.institution-select {
+  position: relative;
+  width: 100%;
+}
+.institution-select__trigger:focus-visible {
+  outline: none;
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 3px rgba(216, 92, 63, 0.12);
+}
+.institution-select__list::-webkit-scrollbar {
+  width: 5px;
+}
+.institution-select__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+.institution-select__list::-webkit-scrollbar-thumb {
+  background: rgba(41, 37, 43, 0.18);
+  border-radius: 4px;
+}
+.institution-select__list::-webkit-scrollbar-thumb:hover {
+  background: rgba(41, 37, 43, 0.32);
 }
 
 @media (max-width: 768px) {
@@ -523,8 +547,12 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  margin-top: var(--space-8);
+  margin-top: clamp(24px, 3.5vh, 36px);
+  margin-bottom: var(--space-3);
   width: 100%;
+  position: relative;
+  z-index: 10;
+  clear: both;
 }
 .form-actions .btn {
   height: var(--btn-height); /* 52px */
@@ -1794,6 +1822,8 @@ h1, h2, h3, h4, h5, h6 {
   min-height: 100vh;
   background: var(--color-ivory);
   overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
 }
 .auth-form-area__mobile-logo {
   display: none;
@@ -1802,19 +1832,25 @@ h1, h2, h3, h4, h5, h6 {
 .auth-form-area__center {
   flex: 1;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  padding: var(--space-12) var(--gutter);
+  justify-content: flex-start;
+  padding: clamp(var(--space-8), 4.5vh, var(--space-14)) var(--gutter);
+  margin-block: auto;
+  width: 100%;
+  box-sizing: border-box;
 }
 .auth-form-area__inner {
   width: 100%;
-  max-width: 520px; /* Substantial, comfortable 520px (was cramped 440px) */
+  max-width: 540px; /* Comfortable 540px with balanced form field widths */
+  min-width: 0;
 }
 .auth-form-area__inner--wide {
   max-width: 880px; /* Balanced 880px for 2x2 role selector grid */
 }
 .auth-form__header {
-  margin-bottom: var(--space-8);
+  margin-bottom: clamp(var(--space-6), 3vh, var(--space-8));
+  width: 100%;
 }
 .auth-form__title {
   font-family: var(--font-display);
