@@ -12,17 +12,26 @@ export default function LoginPage() {
   const location = useLocation();
   const { login } = useAuth();
 
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({
+    email: location.state?.email || '',
+    password: '',
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
   const [pendingNotice, setPendingNotice] = useState(null);
+  const [successNotice, setSuccessNotice] = useState(
+    location.state?.registered
+      ? location.state?.message || 'Account created successfully! You can now sign in.'
+      : null
+  );
 
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
     if (errors.general) setErrors({ ...errors, general: '' });
     if (pendingNotice) setPendingNotice(null);
+    if (successNotice) setSuccessNotice(null);
   };
 
   const validate = () => {
@@ -70,6 +79,48 @@ export default function LoginPage() {
 
   return (
     <AuthLayout title="Welcome back." subtitle="Sign in to continue to your dashboard.">
+      {successNotice && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(61, 139, 95, 0.1)',
+            border: '1px solid rgba(61, 139, 95, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+          }}
+        >
+          <div
+            style={{
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(61, 139, 95, 0.18)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--color-success)',
+              flexShrink: 0,
+            }}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M20 6L9 17l-5-5" />
+            </svg>
+          </div>
+          <div>
+            <div style={{ fontSize: '13.5px', fontWeight: '600', color: 'var(--color-ink)' }}>
+              Registration Successful
+            </div>
+            <div style={{ fontSize: '13px', color: 'var(--color-ink-muted)', marginTop: '2px' }}>
+              {successNotice}
+            </div>
+          </div>
+        </div>
+      )}
+
       {pendingNotice && (
         <div
           className="animate-fade-in"

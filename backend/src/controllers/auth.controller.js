@@ -207,16 +207,19 @@ export const register = async (req, res, next) => {
       });
     }
 
+    // TEMPORARY DEVELOPMENT BEHAVIOR:
+    // Verification workflow will be implemented in a later phase.
+    // New stakeholder registrations are currently auto-verified.
     let newUserDoc = {
       email: normalizedEmail,
       password,
       role,
       phone: req.body.phone || '',
-      status: 'pending',
-      isEmailVerified: false,
+      status: 'verified',
+      isEmailVerified: true,
     };
 
-    let responseMessage = 'Registration successful. Your account is pending verification.';
+    let responseMessage = 'Account created successfully. You can now sign in.';
 
     // Role-specific validation and structure
     switch (role) {
@@ -236,8 +239,7 @@ export const register = async (req, res, next) => {
           academicYear: (academicYear || year || '').trim(),
           cgpa: cgpa || null,
         };
-        responseMessage =
-          'Registration successful. Your account is pending verification by your institution. You will be able to access the Student Panel after approval.';
+        responseMessage = 'Student account created successfully. You can now sign in.';
         break;
       }
 
@@ -261,8 +263,7 @@ export const register = async (req, res, next) => {
             ? expertise.split(',').map((s) => s.trim()).filter(Boolean)
             : [],
         };
-        responseMessage =
-          'Registration successful. Your faculty account is pending approval by your institution.';
+        responseMessage = 'Academician account created successfully. You can now sign in.';
         break;
       }
 
@@ -283,8 +284,7 @@ export const register = async (req, res, next) => {
           address: (address || '').trim(),
           officialLetterheadUrl: req.body.officialLetterheadUrl || '',
         };
-        responseMessage =
-          'Institutional registration submitted for administrative verification.';
+        responseMessage = 'Institution account created successfully. You can now sign in.';
         break;
       }
 
@@ -305,8 +305,7 @@ export const register = async (req, res, next) => {
           website: (website || '').trim(),
           authorizationLetterUrl: req.body.authorizationLetterUrl || '',
         };
-        responseMessage =
-          'Registration successful. Your company account is pending verification by the Platform Admin.';
+        responseMessage = 'Industry partner account created successfully. You can now sign in.';
         break;
       }
 
@@ -322,7 +321,7 @@ export const register = async (req, res, next) => {
 
     return res.status(201).json({
       success: true,
-      status: 'pending',
+      status: 'verified',
       message: responseMessage,
       user: user.toSafeObject(),
     });

@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
+import SelectInput from '../components/auth/SelectInput';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,6 +19,7 @@ export default function IndustryRegister() {
     phone: '',
     website: '',
     password: '',
+    confirmPassword: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -37,6 +39,7 @@ export default function IndustryRegister() {
     if (!form.phone.trim()) errs.phone = 'Phone is required';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 8) errs.password = 'At least 8 characters';
+    if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
     return errs;
   };
 
@@ -57,14 +60,18 @@ export default function IndustryRegister() {
       phone: form.phone,
       website: form.website,
       password: form.password,
+      confirmPassword: form.confirmPassword,
     });
     setLoading(false);
 
     if (result.success) {
-      navigate('/pending-verification', {
+      // Preferred flow: Register -> Login with auto-verified status
+      navigate('/login', {
         state: {
-          message: result.message,
-          role: 'Industry',
+          registered: true,
+          email: form.email,
+          role: 'industry',
+          message: 'Industry account registered successfully! You can now sign in.',
         },
       });
     } else {
@@ -96,58 +103,31 @@ export default function IndustryRegister() {
       )}
 
       <form onSubmit={handleSubmit} noValidate>
-        <AuthInput
-          label="Company Name"
-          placeholder="Nexora Technologies Pvt. Ltd."
-          value={form.companyName}
-          onChange={update('companyName')}
-          error={errors.companyName}
-          required
-        />
-
-        <AuthInput
-          label="Official Email"
-          type="email"
-          placeholder="hr@nexora.com"
-          value={form.email}
-          onChange={update('email')}
-          error={errors.email}
-          required
-          autoComplete="email"
-        />
-
-        <div className="form-row">
-          <div className="form-group">
-            <label className="form-label">
-              Sector
-            </label>
-            <select
-              value={form.sector}
-              onChange={update('sector')}
-              className="form-input form-select"
-            >
-              <option value="">Select sector</option>
-              <option value="it">Information Technology</option>
-              <option value="manufacturing">Manufacturing</option>
-              <option value="finance">Finance & Banking</option>
-              <option value="healthcare">Healthcare</option>
-              <option value="education">Education</option>
-              <option value="consulting">Consulting</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
+        <div className="form-grid animate-fade-in">
           <AuthInput
-            label="Contact Person"
-            placeholder="Priya Mehta"
-            value={form.contactPerson}
-            onChange={update('contactPerson')}
-            error={errors.contactPerson}
+            className="form-grid-full"
+            label="Company Name"
+            placeholder="Nexora Technologies Pvt. Ltd."
+            value={form.companyName}
+            onChange={update('companyName')}
+            error={errors.companyName}
             required
           />
-        </div>
 
-        <div className="form-row">
           <AuthInput
+            className="form-grid-half"
+            label="Official Email"
+            type="email"
+            placeholder="hr@nexora.com"
+            value={form.email}
+            onChange={update('email')}
+            error={errors.email}
+            required
+            autoComplete="email"
+          />
+
+          <AuthInput
+            className="form-grid-half"
             label="Phone"
             type="tel"
             placeholder="+91 98765 43210"
@@ -157,7 +137,35 @@ export default function IndustryRegister() {
             required
             autoComplete="tel"
           />
+
+          <SelectInput
+            className="form-grid-half"
+            label="Sector"
+            value={form.sector}
+            onChange={update('sector')}
+          >
+            <option value="">Select sector</option>
+            <option value="Information Technology">Information Technology</option>
+            <option value="Manufacturing">Manufacturing</option>
+            <option value="Finance & Banking">Finance & Banking</option>
+            <option value="Healthcare & Biotech">Healthcare & Biotech</option>
+            <option value="Education & EdTech">Education & EdTech</option>
+            <option value="Consulting & Services">Consulting & Services</option>
+            <option value="Other">Other</option>
+          </SelectInput>
+
           <AuthInput
+            className="form-grid-half"
+            label="Contact Person"
+            placeholder="Priya Mehta"
+            value={form.contactPerson}
+            onChange={update('contactPerson')}
+            error={errors.contactPerson}
+            required
+          />
+
+          <AuthInput
+            className="form-grid-full"
             label="Company Website"
             type="url"
             placeholder="https://nexora.com"
@@ -165,66 +173,67 @@ export default function IndustryRegister() {
             onChange={update('website')}
             hint="Optional"
           />
-        </div>
 
-        {/* File upload */}
-        <div className="form-group">
-          <label className="form-label">
-            Authorization Letter
-          </label>
-          <div className="file-upload">
-            <svg className="file-upload__icon" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-              <polyline points="14 2 14 8 20 8" />
-              <line x1="12" y1="18" x2="12" y2="12" />
-              <line x1="9" y1="15" x2="15" y2="15" />
-            </svg>
-            <p className="file-upload__text">
-              Drop your authorization letter here or <span style={{ color: 'var(--color-ember)' }}>browse</span>
-            </p>
-            <p className="file-upload__hint">PDF, up to 5 MB</p>
+          {/* File upload */}
+          <div className="form-group form-grid-full">
+            <label className="form-label">
+              Authorization Letter
+            </label>
+            <div className="file-upload">
+              <svg className="file-upload__icon" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="12" y1="18" x2="12" y2="12" />
+                <line x1="9" y1="15" x2="15" y2="15" />
+              </svg>
+              <p className="file-upload__text">
+                Drop authorization letter or <span style={{ color: 'var(--color-ember)' }}>browse file</span>
+              </p>
+              <p className="file-upload__hint">PDF, up to 5 MB</p>
+            </div>
           </div>
+
+          <PasswordInput
+            className="form-grid-half"
+            label="Password"
+            placeholder="Create password"
+            value={form.password}
+            onChange={update('password')}
+            error={errors.password}
+            hint="At least 8 characters"
+            required
+            autoComplete="new-password"
+          />
+
+          <PasswordInput
+            className="form-grid-half"
+            label="Confirm Password"
+            placeholder="Re-enter password"
+            value={form.confirmPassword}
+            onChange={update('confirmPassword')}
+            error={errors.confirmPassword}
+            required
+            autoComplete="new-password"
+          />
         </div>
 
-        <PasswordInput
-          label="Password"
-          placeholder="Create a strong password"
-          value={form.password}
-          onChange={update('password')}
-          error={errors.password}
-          hint="At least 8 characters"
-          required
-          autoComplete="new-password"
-        />
-
-        {/* Verification notice */}
-        <div className="notice notice--warning" style={{ margin: 'var(--space-5) 0' }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="notice__icon">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <span>
-            Your organization will be reviewed before Industry Panel access is granted.
-          </span>
+        <div className="form-actions">
+          <Button
+            type="submit"
+            className="btn--submit"
+            disabled={loading}
+            withArrow
+          >
+            {loading ? (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+                <span className="spinner" />
+                Registering…
+              </span>
+            ) : (
+              'Register Organization'
+            )}
+          </Button>
         </div>
-
-        <Button
-          type="submit"
-          size="lg"
-          style={{ width: '100%' }}
-          disabled={loading}
-          withArrow
-        >
-          {loading ? (
-            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-              <span className="spinner" />
-              Registering…
-            </span>
-          ) : (
-            'Register Organization'
-          )}
-        </Button>
 
         <p className="auth-form__footer">
           Already registered?{' '}
@@ -236,4 +245,3 @@ export default function IndustryRegister() {
     </AuthLayout>
   );
 }
-

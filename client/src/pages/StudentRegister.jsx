@@ -4,6 +4,7 @@ import AuthLayout from '../components/auth/AuthLayout';
 import { useAuth } from '../context/AuthContext';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
+import SelectInput from '../components/auth/SelectInput';
 import ProgressIndicator from '../components/auth/ProgressIndicator';
 import Button from '../components/ui/Button';
 
@@ -33,6 +34,7 @@ export default function StudentRegister() {
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (errors.general) setErrors({ ...errors, general: '' });
   };
 
   const validateStep = () => {
@@ -45,7 +47,7 @@ export default function StudentRegister() {
       else if (!/^\d{10}$/.test(form.phone.replace(/\D/g, '')))
         errs.phone = 'Enter a valid 10-digit phone number';
     } else if (step === 1) {
-      if (!form.university.trim()) errs.university = 'University is required';
+      if (!form.university.trim()) errs.university = 'University / Institution is required';
       if (!form.rollNumber.trim()) errs.rollNumber = 'Roll number is required';
       if (!form.branch.trim()) errs.branch = 'Branch is required';
       if (!form.year) errs.year = 'Year is required';
@@ -88,10 +90,13 @@ export default function StudentRegister() {
       setLoading(false);
 
       if (result.success) {
-        navigate('/pending-verification', {
+        // Preferred flow: Register -> Login with auto-verified status
+        navigate('/login', {
           state: {
-            message: result.message,
-            role: 'Student',
+            registered: true,
+            email: form.email,
+            role: 'student',
+            message: 'Student account created successfully! You can now sign in.',
           },
         });
       } else {
@@ -127,8 +132,9 @@ export default function StudentRegister() {
 
       <form onSubmit={handleNext} noValidate>
         {step === 0 && (
-          <div className="animate-fade-in">
+          <div className="form-grid animate-fade-in">
             <AuthInput
+              className="form-grid-full"
               label="Full Name"
               placeholder="Ananya Sharma"
               value={form.name}
@@ -138,6 +144,7 @@ export default function StudentRegister() {
               autoComplete="name"
             />
             <AuthInput
+              className="form-grid-full"
               label="Email"
               type="email"
               placeholder="ananya@university.edu"
@@ -148,6 +155,7 @@ export default function StudentRegister() {
               autoComplete="email"
             />
             <AuthInput
+              className="form-grid-full"
               label="Phone"
               type="tel"
               placeholder="+91 98765 43210"
@@ -161,69 +169,68 @@ export default function StudentRegister() {
         )}
 
         {step === 1 && (
-          <div className="animate-fade-in">
+          <div className="form-grid animate-fade-in">
             <AuthInput
+              className="form-grid-full"
               label="University / Institution"
-              placeholder="Indian Institute of Technology, Delhi"
+              placeholder="Indian Institute of Technology, Bombay"
               value={form.university}
               onChange={update('university')}
               error={errors.university}
               required
             />
-            <div className="form-row">
-              <AuthInput
-                label="Roll Number"
-                placeholder="2021CSE1042"
-                value={form.rollNumber}
-                onChange={update('rollNumber')}
-                error={errors.rollNumber}
-                required
-              />
-              <AuthInput
-                label="Branch"
-                placeholder="Computer Science"
-                value={form.branch}
-                onChange={update('branch')}
-                error={errors.branch}
-                required
-              />
-            </div>
-            <div className="form-row">
-              <div className="form-group">
-                <label className="form-label">
-                  Year<span className="form-label__required">*</span>
-                </label>
-                <select
-                  value={form.year}
-                  onChange={update('year')}
-                  className={`form-input form-select ${errors.year ? 'form-input--error' : ''}`.trim()}
-                >
-                  <option value="">Select year</option>
-                  <option value="1">1st Year</option>
-                  <option value="2">2nd Year</option>
-                  <option value="3">3rd Year</option>
-                  <option value="4">4th Year</option>
-                  <option value="5">5th Year</option>
-                </select>
-                {errors.year && (
-                  <p className="form-error" role="alert">{errors.year}</p>
-                )}
-              </div>
-              <AuthInput
-                label="CGPA"
-                type="number"
-                placeholder="8.5"
-                value={form.cgpa}
-                onChange={update('cgpa')}
-                hint="Optional"
-              />
-            </div>
+            <AuthInput
+              className="form-grid-half"
+              label="Roll Number"
+              placeholder="2021CSE1042"
+              value={form.rollNumber}
+              onChange={update('rollNumber')}
+              error={errors.rollNumber}
+              required
+            />
+            <AuthInput
+              className="form-grid-half"
+              label="Branch"
+              placeholder="Computer Science"
+              value={form.branch}
+              onChange={update('branch')}
+              error={errors.branch}
+              required
+            />
+            <SelectInput
+              className="form-grid-half"
+              label="Year"
+              value={form.year}
+              onChange={update('year')}
+              error={errors.year}
+              required
+            >
+              <option value="">Select year</option>
+              <option value="1st Year">1st Year</option>
+              <option value="2nd Year">2nd Year</option>
+              <option value="3rd Year">3rd Year</option>
+              <option value="4th Year">4th Year</option>
+              <option value="5th Year">5th Year</option>
+            </SelectInput>
+            <AuthInput
+              className="form-grid-half"
+              label="CGPA"
+              type="number"
+              step="0.01"
+              min="0"
+              max="10"
+              placeholder="8.5"
+              value={form.cgpa}
+              onChange={update('cgpa')}
+              hint="Optional"
+            />
           </div>
         )}
 
         {step === 2 && (
-          <div className="animate-fade-in">
+          <div className="form-grid animate-fade-in">
             <PasswordInput
+              className="form-grid-full"
               label="Password"
               placeholder="Create a strong password"
               value={form.password}
@@ -234,6 +241,7 @@ export default function StudentRegister() {
               autoComplete="new-password"
             />
             <PasswordInput
+              className="form-grid-full"
               label="Confirm Password"
               placeholder="Re-enter your password"
               value={form.confirmPassword}
@@ -242,27 +250,15 @@ export default function StudentRegister() {
               required
               autoComplete="new-password"
             />
-
-            {/* Verification notice */}
-            <div className="notice notice--warning" style={{ marginTop: 'var(--space-4)' }}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="notice__icon">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-              <span>
-                Your institution may need to verify your enrollment before full access is granted.
-              </span>
-            </div>
           </div>
         )}
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-3)', marginTop: 'var(--space-8)' }}>
+        <div className="form-actions">
           {step > 0 && (
             <Button
               type="button"
               variant="outline"
-              size="md"
+              className="btn--back"
               onClick={() => setStep(step - 1)}
             >
               Back
@@ -270,8 +266,7 @@ export default function StudentRegister() {
           )}
           <Button
             type="submit"
-            size="lg"
-            style={{ flex: 1 }}
+            className="btn--submit"
             disabled={loading}
             withArrow={step === STEPS.length - 1}
           >
@@ -298,4 +293,3 @@ export default function StudentRegister() {
     </AuthLayout>
   );
 }
-
