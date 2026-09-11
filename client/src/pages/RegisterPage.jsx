@@ -15,6 +15,7 @@ export default function RegisterPage() {
     <AuthLayout
       title="Join the ecosystem."
       subtitle="How will you use the platform?"
+      wide
     >
       <div className="role-selector__grid">
         {ROLES.map((role) => {

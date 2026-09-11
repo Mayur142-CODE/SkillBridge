@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 
-export default function AuthLayout({ children, title, subtitle }) {
+export default function AuthLayout({ children, title, subtitle, wide = false }) {
   return (
     <div className="auth-shell">
       {/* Left — Brand panel */}
@@ -9,18 +9,20 @@ export default function AuthLayout({ children, title, subtitle }) {
         <div className="auth-brand__ambient-2" aria-hidden="true" />
 
         {/* Logo */}
-        <Link to="/" className="auth-brand__logo" aria-label="SkillBridge Home">
-          <div className="navbar__logo">
-            <div className="navbar__logo-mark">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M6 20V4M18 20V4M6 12h12" />
-              </svg>
+        <div className="auth-brand__top">
+          <Link to="/" className="auth-brand__logo" aria-label="SkillBridge Home">
+            <div className="navbar__logo">
+              <div className="navbar__logo-mark">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 20V4M18 20V4M6 12h12" />
+                </svg>
+              </div>
+              <span className="navbar__logo-text">SkillBridge</span>
             </div>
-            <span className="navbar__logo-text">SkillBridge</span>
-          </div>
-        </Link>
+          </Link>
+        </div>
 
-        {/* Content */}
+        {/* Content - Visually centered */}
         <div className="auth-brand__content">
           <h1 className="auth-brand__title">
             One platform.{' '}
@@ -51,9 +53,11 @@ export default function AuthLayout({ children, title, subtitle }) {
         </div>
 
         {/* Footer */}
-        <p className="auth-brand__footer">
-          &copy; {new Date().getFullYear()} SkillBridge
-        </p>
+        <div className="auth-brand__footer-wrap">
+          <p className="auth-brand__footer">
+            &copy; {new Date().getFullYear()} SkillBridge. All rights reserved.
+          </p>
+        </div>
       </div>
 
       {/* Right — Auth content */}
@@ -71,9 +75,9 @@ export default function AuthLayout({ children, title, subtitle }) {
         </div>
 
         <div className="auth-form-area__center">
-          <div className="auth-form-area__inner">
+          <div className={`auth-form-area__inner ${wide ? 'auth-form-area__inner--wide' : ''}`}>
             {(title || subtitle) && (
-              <div>
+              <div className="auth-form__header">
                 {title && <h2 className="auth-form__title">{title}</h2>}
                 {subtitle && <p className="auth-form__subtitle">{subtitle}</p>}
               </div>
