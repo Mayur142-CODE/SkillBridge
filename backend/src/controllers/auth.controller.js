@@ -224,19 +224,39 @@ export const register = async (req, res, next) => {
     // Role-specific validation and structure
     switch (role) {
       case 'student': {
-        const { name, university, rollNumber, branch, academicYear, year, cgpa } = req.body;
-        if (!name || !university || !rollNumber) {
+        const {
+          name,
+          university,
+          institutionId,
+          rollNumber,
+          studentId,
+          branch,
+          program,
+          academicYear,
+          year,
+          semester,
+          division,
+          cgpa,
+        } = req.body;
+        const institutionVal = institutionId || university;
+        const idVal = studentId || rollNumber;
+        if (!name || !institutionVal) {
           return res.status(400).json({
             success: false,
-            message: 'Full Name, University / Institution, and Roll Number are required.',
+            message: 'Full Name and Institution / University are required.',
           });
         }
         newUserDoc.name = name.trim();
         newUserDoc.studentProfile = {
-          university: university.trim(),
-          rollNumber: rollNumber.trim(),
-          branch: (branch || '').trim(),
-          academicYear: (academicYear || year || '').trim(),
+          institutionId: (institutionId || institutionVal).trim(),
+          university: (university || institutionVal).trim(),
+          rollNumber: (idVal || '').trim(),
+          studentId: (idVal || '').trim(),
+          branch: (program || branch || '').trim(),
+          program: (program || branch || '').trim(),
+          academicYear: (semester || academicYear || year || '').trim(),
+          semester: (semester || academicYear || year || '').trim(),
+          division: (division || '').trim(),
           cgpa: cgpa || null,
         };
         responseMessage = 'Student account created successfully. You can now sign in.';
@@ -244,9 +264,18 @@ export const register = async (req, res, next) => {
       }
 
       case 'academician': {
-        const { name, institution, university, department, designation, expertise } = req.body;
-        const institutionName = institution || university;
-        if (!name || !institutionName || !department) {
+        const {
+          name,
+          institution,
+          institutionId,
+          university,
+          department,
+          designation,
+          facultyId,
+          expertise,
+        } = req.body;
+        const institutionVal = institutionId || institution || university;
+        if (!name || !institutionVal || !department) {
           return res.status(400).json({
             success: false,
             message: 'Full Name, Institution / University, and Department are required.',
@@ -254,9 +283,11 @@ export const register = async (req, res, next) => {
         }
         newUserDoc.name = name.trim();
         newUserDoc.academicianProfile = {
-          institution: institutionName.trim(),
+          institutionId: (institutionId || institutionVal).trim(),
+          institution: (institution || university || institutionVal).trim(),
           department: department.trim(),
           designation: (designation || 'Faculty').trim(),
+          facultyId: (facultyId || '').trim(),
           expertise: Array.isArray(expertise)
             ? expertise
             : typeof expertise === 'string'

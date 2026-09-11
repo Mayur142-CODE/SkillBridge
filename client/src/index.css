@@ -481,6 +481,24 @@ h1, h2, h3, h4, h5, h6 {
 }
 .password-toggle:hover { color: var(--color-ink); }
 
+/* ── Institution Searchable Select ── */
+.institution-select__trigger {
+  user-select: none;
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+.institution-select__trigger:hover {
+  border-color: var(--color-border-hover);
+}
+.institution-select__trigger--open,
+.institution-select__trigger:focus {
+  outline: none;
+  border-color: var(--color-ember);
+  box-shadow: 0 0 0 3px rgba(216, 92, 63, 0.1);
+}
+.institution-select__menu {
+  box-shadow: 0 10px 30px rgba(33, 26, 44, 0.12), 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
 .file-upload {
   border: 2px dashed var(--color-border);
   border-radius: var(--radius-lg);

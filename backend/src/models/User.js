@@ -6,7 +6,12 @@ export const STATUS_ENUM = ['pending', 'verified', 'rejected', 'suspended', 'dea
 
 const StudentProfileSchema = new mongoose.Schema(
   {
+    institutionId: { type: String, trim: true },
     university: { type: String, trim: true },
+    program: { type: String, trim: true },
+    semester: { type: String, trim: true },
+    division: { type: String, trim: true },
+    studentId: { type: String, trim: true },
     rollNumber: { type: String, trim: true },
     branch: { type: String, trim: true },
     academicYear: { type: String, trim: true },
@@ -17,9 +22,11 @@ const StudentProfileSchema = new mongoose.Schema(
 
 const AcademicianProfileSchema = new mongoose.Schema(
   {
+    institutionId: { type: String, trim: true },
     institution: { type: String, trim: true },
     department: { type: String, trim: true },
     designation: { type: String, trim: true, default: 'Faculty' },
+    facultyId: { type: String, trim: true },
     expertise: [{ type: String, trim: true }],
   },
   { _id: false }

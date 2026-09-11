@@ -4,8 +4,10 @@ import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import SelectInput from '../components/auth/SelectInput';
+import InstitutionSelect from '../components/auth/InstitutionSelect';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
+import { getInstitutionName } from '../data/mockInstitutions';
 
 export default function FacultyRegister() {
   const navigate = useNavigate();
@@ -14,13 +16,12 @@ export default function FacultyRegister() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    phone: '',
-    university: '',
-    department: '',
-    designation: '',
-    expertise: '',
     password: '',
     confirmPassword: '',
+    institutionId: '',
+    department: '',
+    designation: '',
+    facultyId: '',
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
@@ -35,13 +36,14 @@ export default function FacultyRegister() {
     const errs = {};
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (!form.email.trim()) errs.email = 'Official email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email';
-    if (!form.phone.trim()) errs.phone = 'Phone number is required';
-    if (!form.university.trim()) errs.university = 'Institution / University is required';
-    if (!form.department.trim()) errs.department = 'Department is required';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 8) errs.password = 'At least 8 characters';
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
+    if (!form.institutionId) errs.institutionId = 'Please select your institution';
+    if (!form.department.trim()) errs.department = 'Department is required';
+    if (!form.designation) errs.designation = 'Designation is required';
+    if (!form.facultyId.trim()) errs.facultyId = 'Faculty ID is required';
     return errs;
   };
 
@@ -57,24 +59,23 @@ export default function FacultyRegister() {
     const result = await register('academician', {
       name: form.name,
       email: form.email,
-      phone: form.phone,
-      institution: form.university,
-      department: form.department,
-      designation: form.designation || 'Faculty',
-      expertise: form.expertise,
       password: form.password,
       confirmPassword: form.confirmPassword,
+      institutionId: form.institutionId,
+      institution: getInstitutionName(form.institutionId),
+      department: form.department,
+      designation: form.designation,
+      facultyId: form.facultyId,
     });
     setLoading(false);
 
     if (result.success) {
-      // Preferred flow: Register -> Login with auto-verified status
       navigate('/login', {
         state: {
           registered: true,
           email: form.email,
           role: 'academician',
-          message: 'Academician account created successfully! You can now sign in.',
+          message: 'Academician account registered successfully! You can now sign in.',
         },
       });
     } else {
@@ -85,7 +86,7 @@ export default function FacultyRegister() {
   return (
     <AuthLayout
       title="Academician Registration"
-      subtitle="Join the platform to mentor students and collaborate with industry."
+      subtitle="Register under your affiliated institution to mentor and collaborate."
     >
       {errors.general && (
         <div
@@ -119,8 +120,8 @@ export default function FacultyRegister() {
           />
 
           <AuthInput
-            className="form-grid-half"
-            label="Official Email"
+            className="form-grid-full"
+            label="Email"
             type="email"
             placeholder="rajesh.kumar@university.edu"
             value={form.email}
@@ -128,62 +129,6 @@ export default function FacultyRegister() {
             error={errors.email}
             required
             autoComplete="email"
-          />
-
-          <AuthInput
-            className="form-grid-half"
-            label="Phone"
-            type="tel"
-            placeholder="+91 98765 43210"
-            value={form.phone}
-            onChange={update('phone')}
-            error={errors.phone}
-            required
-            autoComplete="tel"
-          />
-
-          <AuthInput
-            className="form-grid-half"
-            label="Institution / University"
-            placeholder="Indian Institute of Technology, Bombay"
-            value={form.university}
-            onChange={update('university')}
-            error={errors.university}
-            required
-          />
-
-          <AuthInput
-            className="form-grid-half"
-            label="Department"
-            placeholder="Computer Science & Engineering"
-            value={form.department}
-            onChange={update('department')}
-            error={errors.department}
-            required
-          />
-
-          <SelectInput
-            className="form-grid-half"
-            label="Designation"
-            value={form.designation}
-            onChange={update('designation')}
-          >
-            <option value="">Select designation</option>
-            <option value="Professor">Professor</option>
-            <option value="Associate Professor">Associate Professor</option>
-            <option value="Assistant Professor">Assistant Professor</option>
-            <option value="Head of Department">Head of Department</option>
-            <option value="Dean">Dean</option>
-            <option value="Lecturer">Lecturer</option>
-          </SelectInput>
-
-          <AuthInput
-            className="form-grid-half"
-            label="Expertise Areas"
-            placeholder="AI, Machine Learning, Distributed Systems"
-            value={form.expertise}
-            onChange={update('expertise')}
-            hint="Comma separated"
           />
 
           <PasswordInput
@@ -207,6 +152,54 @@ export default function FacultyRegister() {
             error={errors.confirmPassword}
             required
             autoComplete="new-password"
+          />
+
+          {/* Institution Selector — Searchable dropdown */}
+          <InstitutionSelect
+            className="form-grid-full"
+            label="Institution / University"
+            placeholder="Select your institution"
+            value={form.institutionId}
+            onChange={update('institutionId')}
+            error={errors.institutionId}
+            required
+          />
+
+          <AuthInput
+            className="form-grid-half"
+            label="Department"
+            placeholder="e.g. Computer Science"
+            value={form.department}
+            onChange={update('department')}
+            error={errors.department}
+            required
+          />
+
+          <SelectInput
+            className="form-grid-half"
+            label="Designation"
+            value={form.designation}
+            onChange={update('designation')}
+            error={errors.designation}
+            required
+          >
+            <option value="">Select designation</option>
+            <option value="Professor">Professor</option>
+            <option value="Associate Professor">Associate Professor</option>
+            <option value="Assistant Professor">Assistant Professor</option>
+            <option value="Head of Department">Head of Department</option>
+            <option value="Dean">Dean</option>
+            <option value="Lecturer">Lecturer</option>
+          </SelectInput>
+
+          <AuthInput
+            className="form-grid-full"
+            label="Faculty ID"
+            placeholder="e.g. FAC-2024-1049"
+            value={form.facultyId}
+            onChange={update('facultyId')}
+            error={errors.facultyId}
+            required
           />
         </div>
 

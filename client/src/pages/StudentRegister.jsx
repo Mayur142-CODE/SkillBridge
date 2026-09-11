@@ -5,8 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import SelectInput from '../components/auth/SelectInput';
+import InstitutionSelect from '../components/auth/InstitutionSelect';
 import ProgressIndicator from '../components/auth/ProgressIndicator';
 import Button from '../components/ui/Button';
+import { getInstitutionName } from '../data/mockInstitutions';
 
 const STEPS = [
   { label: 'Basic' },
@@ -19,12 +21,11 @@ export default function StudentRegister() {
   const [form, setForm] = useState({
     name: '',
     email: '',
-    phone: '',
-    university: '',
-    rollNumber: '',
-    branch: '',
-    year: '',
-    cgpa: '',
+    institutionId: '',
+    program: '',
+    semester: '',
+    division: '',
+    studentId: '',
     password: '',
     confirmPassword: '',
   });
@@ -42,15 +43,13 @@ export default function StudentRegister() {
     if (step === 0) {
       if (!form.name.trim()) errs.name = 'Full name is required';
       if (!form.email.trim()) errs.email = 'Email is required';
-      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email';
-      if (!form.phone.trim()) errs.phone = 'Phone number is required';
-      else if (!/^\d{10}$/.test(form.phone.replace(/\D/g, '')))
-        errs.phone = 'Enter a valid 10-digit phone number';
+      else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address';
     } else if (step === 1) {
-      if (!form.university.trim()) errs.university = 'University / Institution is required';
-      if (!form.rollNumber.trim()) errs.rollNumber = 'Roll number is required';
-      if (!form.branch.trim()) errs.branch = 'Branch is required';
-      if (!form.year) errs.year = 'Year is required';
+      if (!form.institutionId) errs.institutionId = 'Please select your institution';
+      if (!form.program.trim()) errs.program = 'Program is required';
+      if (!form.semester) errs.semester = 'Semester is required';
+      if (!form.division.trim()) errs.division = 'Division is required';
+      if (!form.studentId.trim()) errs.studentId = 'Student ID is required';
     } else if (step === 2) {
       if (!form.password) errs.password = 'Password is required';
       else if (form.password.length < 8) errs.password = 'At least 8 characters';
@@ -78,25 +77,25 @@ export default function StudentRegister() {
       const result = await register('student', {
         name: form.name,
         email: form.email,
-        phone: form.phone,
-        university: form.university,
-        rollNumber: form.rollNumber,
-        branch: form.branch,
-        academicYear: form.year,
-        cgpa: form.cgpa,
+        institutionId: form.institutionId,
+        university: getInstitutionName(form.institutionId),
+        program: form.program,
+        semester: form.semester,
+        division: form.division,
+        studentId: form.studentId,
+        rollNumber: form.studentId,
         password: form.password,
         confirmPassword: form.confirmPassword,
       });
       setLoading(false);
 
       if (result.success) {
-        // Preferred flow: Register -> Login with auto-verified status
         navigate('/login', {
           state: {
             registered: true,
             email: form.email,
             role: 'student',
-            message: 'Student account created successfully! You can now sign in.',
+            message: 'Student account registered successfully! You can now sign in.',
           },
         });
       } else {
@@ -108,7 +107,7 @@ export default function StudentRegister() {
   return (
     <AuthLayout
       title="Student Registration"
-      subtitle="Create your account and start building your verified portfolio."
+      subtitle="Create your account under your registered institution."
     >
       <ProgressIndicator steps={STEPS} currentStep={step} />
 
@@ -154,75 +153,69 @@ export default function StudentRegister() {
               required
               autoComplete="email"
             />
-            <AuthInput
-              className="form-grid-full"
-              label="Phone"
-              type="tel"
-              placeholder="+91 98765 43210"
-              value={form.phone}
-              onChange={update('phone')}
-              error={errors.phone}
-              required
-              autoComplete="tel"
-            />
           </div>
         )}
 
         {step === 1 && (
           <div className="form-grid animate-fade-in">
-            <AuthInput
+            {/* Institution Selector — Searchable dropdown */}
+            <InstitutionSelect
               className="form-grid-full"
-              label="University / Institution"
-              placeholder="Indian Institute of Technology, Bombay"
-              value={form.university}
-              onChange={update('university')}
-              error={errors.university}
+              label="Institution / University"
+              placeholder="Select your institution"
+              value={form.institutionId}
+              onChange={update('institutionId')}
+              error={errors.institutionId}
               required
             />
+
             <AuthInput
               className="form-grid-half"
-              label="Roll Number"
-              placeholder="2021CSE1042"
-              value={form.rollNumber}
-              onChange={update('rollNumber')}
-              error={errors.rollNumber}
+              label="Program"
+              placeholder="e.g. B.Tech Computer Science"
+              value={form.program}
+              onChange={update('program')}
+              error={errors.program}
               required
             />
-            <AuthInput
-              className="form-grid-half"
-              label="Branch"
-              placeholder="Computer Science"
-              value={form.branch}
-              onChange={update('branch')}
-              error={errors.branch}
-              required
-            />
+
             <SelectInput
               className="form-grid-half"
-              label="Year"
-              value={form.year}
-              onChange={update('year')}
-              error={errors.year}
+              label="Semester"
+              value={form.semester}
+              onChange={update('semester')}
+              error={errors.semester}
               required
             >
-              <option value="">Select year</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-              <option value="4th Year">4th Year</option>
-              <option value="5th Year">5th Year</option>
+              <option value="">Select semester</option>
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+              <option value="Semester 7">Semester 7</option>
+              <option value="Semester 8">Semester 8</option>
             </SelectInput>
+
             <AuthInput
               className="form-grid-half"
-              label="CGPA"
-              type="number"
-              step="0.01"
-              min="0"
-              max="10"
-              placeholder="8.5"
-              value={form.cgpa}
-              onChange={update('cgpa')}
-              hint="Optional"
+              label="Division"
+              placeholder="e.g. Division A"
+              value={form.division}
+              onChange={update('division')}
+              error={errors.division}
+              required
+            />
+
+            <AuthInput
+              className="form-grid-half"
+              label="Student ID"
+              placeholder="e.g. 2024CS1042"
+              value={form.studentId}
+              onChange={update('studentId')}
+              error={errors.studentId}
+              required
             />
           </div>
         )}
