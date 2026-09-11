@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
+import { useAuth } from '../context/AuthContext';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import ProgressIndicator from '../components/auth/ProgressIndicator';
@@ -57,7 +58,10 @@ export default function StudentRegister() {
     return errs;
   };
 
-  const handleNext = (e) => {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
+  const handleNext = async (e) => {
     e.preventDefault();
     const errs = validateStep();
     if (Object.keys(errs).length) {
@@ -68,7 +72,31 @@ export default function StudentRegister() {
       setStep(step + 1);
     } else {
       setLoading(true);
-      setTimeout(() => setLoading(false), 1500);
+      setErrors({});
+      const result = await register('student', {
+        name: form.name,
+        email: form.email,
+        phone: form.phone,
+        university: form.university,
+        rollNumber: form.rollNumber,
+        branch: form.branch,
+        academicYear: form.year,
+        cgpa: form.cgpa,
+        password: form.password,
+        confirmPassword: form.confirmPassword,
+      });
+      setLoading(false);
+
+      if (result.success) {
+        navigate('/pending-verification', {
+          state: {
+            message: result.message,
+            role: 'Student',
+          },
+        });
+      } else {
+        setErrors({ general: result.message || 'Registration failed.' });
+      }
     }
   };
 
@@ -78,6 +106,24 @@ export default function StudentRegister() {
       subtitle="Create your account and start building your verified portfolio."
     >
       <ProgressIndicator steps={STEPS} currentStep={step} />
+
+      {errors.general && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(209, 67, 67, 0.1)',
+            border: '1px solid rgba(209, 67, 67, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            fontSize: '14px',
+            color: 'var(--color-error)',
+            fontWeight: '500',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
 
       <form onSubmit={handleNext} noValidate>
         {step === 0 && (

@@ -1,23 +1,33 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import PasswordInput from '../components/auth/PasswordInput';
 import Button from '../components/ui/Button';
 
 export default function ResetPassword() {
+  const { token: routeToken } = useParams();
+  const [searchParams] = useSearchParams();
+  const token = routeToken || searchParams.get('token') || '';
+
   const [form, setForm] = useState({ password: '', confirmPassword: '' });
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (serverError) setServerError('');
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = {};
+    if (!token) {
+      setServerError('Reset token is missing from the link. Please check your reset link or request a new one.');
+      return;
+    }
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 8) errs.password = 'At least 8 characters';
     if (form.password !== form.confirmPassword) errs.confirmPassword = 'Passwords do not match';
@@ -25,11 +35,34 @@ export default function ResetPassword() {
       setErrors(errs);
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
+    setServerError('');
+
+    try {
+      const res = await fetch(`/api/auth/reset-password/${token}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setServerError(data.message || 'Failed to reset password. The link may have expired.');
+        setLoading(false);
+        return;
+      }
+
       setLoading(false);
       setSuccess(true);
-    }, 1500);
+    } catch (err) {
+      setServerError('Network error. Please try again later.');
+      setLoading(false);
+    }
   };
 
   if (success) {
@@ -73,6 +106,24 @@ export default function ResetPassword() {
       subtitle="Your new password must be at least 8 characters long."
     >
       <form onSubmit={handleSubmit} noValidate>
+        {serverError && (
+          <div
+            style={{
+              padding: '12px 16px',
+              borderRadius: 'var(--radius-md)',
+              background: 'rgba(216,92,63,0.1)',
+              border: '1px solid rgba(216,92,63,0.3)',
+              color: 'var(--color-ember)',
+              fontSize: '13px',
+              marginBottom: 'var(--space-4)',
+              lineHeight: 1.4,
+            }}
+            role="alert"
+          >
+            {serverError}
+          </div>
+        )}
+
         <PasswordInput
           label="New Password"
           placeholder="Enter your new password"

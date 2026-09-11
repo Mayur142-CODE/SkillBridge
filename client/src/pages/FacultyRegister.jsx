@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 export default function FacultyRegister() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -21,6 +25,7 @@ export default function FacultyRegister() {
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (errors.general) setErrors({ ...errors, general: '' });
   };
 
   const validate = () => {
@@ -28,14 +33,14 @@ export default function FacultyRegister() {
     if (!form.name.trim()) errs.name = 'Full name is required';
     if (!form.email.trim()) errs.email = 'Official email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email';
-    if (!form.university.trim()) errs.university = 'University is required';
+    if (!form.university.trim()) errs.university = 'University / Institution is required';
     if (!form.department.trim()) errs.department = 'Department is required';
     if (!form.password) errs.password = 'Password is required';
     else if (form.password.length < 8) errs.password = 'At least 8 characters';
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
@@ -43,7 +48,28 @@ export default function FacultyRegister() {
       return;
     }
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    setErrors({});
+    const result = await register('academician', {
+      name: form.name,
+      email: form.email,
+      institution: form.university,
+      department: form.department,
+      designation: form.designation || 'Faculty',
+      expertise: form.expertise,
+      password: form.password,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      navigate('/pending-verification', {
+        state: {
+          message: result.message,
+          role: 'Academician',
+        },
+      });
+    } else {
+      setErrors({ general: result.message || 'Registration failed.' });
+    }
   };
 
   return (
@@ -51,6 +77,24 @@ export default function FacultyRegister() {
       title="Academician Registration"
       subtitle="Join the platform to mentor students and collaborate with industry."
     >
+      {errors.general && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(209, 67, 67, 0.1)',
+            border: '1px solid rgba(209, 67, 67, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            fontSize: '14px',
+            color: 'var(--color-error)',
+            fontWeight: '500',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} noValidate>
         <AuthInput
           label="Full Name"

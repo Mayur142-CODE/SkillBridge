@@ -1,19 +1,28 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
+import { ROLE_PANEL_MAP } from '../components/auth/ProtectedRoute';
 
 export default function LoginPage() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
   const [form, setForm] = useState({ email: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [remember, setRemember] = useState(false);
+  const [pendingNotice, setPendingNotice] = useState(null);
 
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (errors.general) setErrors({ ...errors, general: '' });
+    if (pendingNotice) setPendingNotice(null);
   };
 
   const validate = () => {
@@ -21,24 +30,95 @@ export default function LoginPage() {
     if (!form.email.trim()) errs.email = 'Email is required';
     else if (!/\S+@\S+\.\S+/.test(form.email)) errs.email = 'Enter a valid email address';
     if (!form.password) errs.password = 'Password is required';
-    else if (form.password.length < 6) errs.password = 'Password must be at least 6 characters';
+    else if (form.password.length < 8) errs.password = 'Password must be at least 8 characters';
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
       setErrors(errs);
       return;
     }
+
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => setLoading(false), 1500);
+    setErrors({});
+    setPendingNotice(null);
+
+    const result = await login(form.email, form.password);
+    setLoading(false);
+
+    if (result.success && result.user) {
+      // Role-based redirect
+      const destination =
+        location.state?.from?.pathname ||
+        ROLE_PANEL_MAP[result.user.role] ||
+        '/student';
+      navigate(destination, { replace: true });
+    } else if (result.status === 'pending') {
+      setPendingNotice({
+        role: result.role,
+        message: result.message,
+      });
+    } else {
+      setErrors({
+        general: result.message || 'Invalid email or password.',
+      });
+    }
   };
 
   return (
     <AuthLayout title="Welcome back." subtitle="Sign in to continue to your dashboard.">
+      {pendingNotice && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(242, 184, 75, 0.12)',
+            border: '1px solid rgba(242, 184, 75, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            padding: '16px',
+            marginBottom: 'var(--space-6)',
+          }}
+        >
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+            <div style={{ color: 'var(--color-saffron-dark)', marginTop: '2px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="8" x2="12" y2="12" />
+                <line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <div>
+              <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--color-ink)' }}>
+                Account Pending Verification
+              </div>
+              <div style={{ fontSize: '13.5px', color: 'var(--color-ink-light)', marginTop: '4px', lineHeight: '1.5' }}>
+                {pendingNotice.message}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {errors.general && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(209, 67, 67, 0.1)',
+            border: '1px solid rgba(209, 67, 67, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            fontSize: '14px',
+            color: 'var(--color-error)',
+            fontWeight: '500',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} noValidate>
         <AuthInput
           label="Email"
@@ -107,4 +187,3 @@ export default function LoginPage() {
     </AuthLayout>
   );
 }
-

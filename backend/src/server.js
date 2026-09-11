@@ -1,8 +1,10 @@
 import express from 'express';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
 import morgan from 'morgan';
 
+import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
 import opportunitiesRoutes from './routes/opportunities.routes.js';
 import skillsRoutes from './routes/skills.routes.js';
@@ -22,12 +24,13 @@ app.use(
     origin: [CLIENT_URL, 'http://localhost:5173', 'http://127.0.0.1:5173'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
+    allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
   })
 );
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 if (process.env.NODE_ENV !== 'production') {
   app.use(morgan('dev'));
@@ -38,8 +41,9 @@ app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'online',
     platform: 'SkillBridge API',
+    database: 'MongoDB Atlas',
     environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
@@ -53,16 +57,27 @@ app.use('/api/users', usersRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-// ── Start Server ──
-app.listen(PORT, () => {
-  console.log(`
+// ── Start Server after connecting to Database ──
+const startServer = async () => {
+  try {
+    await connectDB();
+
+    app.listen(PORT, () => {
+      console.log(`
   ═══════════════════════════════════════════════════
   🚀 SkillBridge Node.js Backend API running!
   📡 Port:        ${PORT}
   🌍 Mode:        ${process.env.NODE_ENV || 'development'}
   🔗 Healthcheck: http://localhost:${PORT}/api/health
   ═══════════════════════════════════════════════════
-  `);
-});
+      `);
+    });
+  } catch (error) {
+    console.error('❌ Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();
 
 export default app;

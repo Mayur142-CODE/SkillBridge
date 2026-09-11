@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 export default function InstitutionRegister() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [form, setForm] = useState({
     institutionName: '',
     aisheCode: '',
@@ -21,6 +25,7 @@ export default function InstitutionRegister() {
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (errors.general) setErrors({ ...errors, general: '' });
   };
 
   const validate = () => {
@@ -37,7 +42,7 @@ export default function InstitutionRegister() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
@@ -45,7 +50,28 @@ export default function InstitutionRegister() {
       return;
     }
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    setErrors({});
+    const result = await register('institution', {
+      institutionName: form.institutionName,
+      aisheCode: form.aisheCode,
+      email: form.email,
+      contactPerson: form.contactPerson,
+      phone: form.phone,
+      address: form.address,
+      password: form.password,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      navigate('/pending-verification', {
+        state: {
+          message: result.message,
+          role: 'Institution',
+        },
+      });
+    } else {
+      setErrors({ general: result.message || 'Registration failed.' });
+    }
   };
 
   return (
@@ -53,6 +79,23 @@ export default function InstitutionRegister() {
       title="Institution Registration"
       subtitle="Register your institution to manage students, placements and industry partnerships."
     >
+      {errors.general && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(209, 67, 67, 0.1)',
+            border: '1px solid rgba(209, 67, 67, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            fontSize: '14px',
+            color: 'var(--color-error)',
+            fontWeight: '500',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
       {/* Official registration badge */}
       <div className="notice notice--official" style={{ marginBottom: 'var(--space-6)' }}>
         <div className="navbar__logo-mark" style={{ width: '28px', height: '28px', backgroundColor: 'var(--color-plum)' }}>

@@ -1,25 +1,28 @@
 import { Router } from 'express';
 import {
   login,
-  registerStudent,
-  registerIndustry,
-  registerFaculty,
-  registerInstitution,
+  register,
+  logout,
+  getCurrentUser,
   forgotPassword,
   resetPassword,
-  getCurrentUser
 } from '../controllers/auth.controller.js';
-import { requireAuth } from '../middlewares/auth.middleware.js';
+import { authenticateToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
+// Authentication
 router.post('/login', login);
-router.post('/register/student', registerStudent);
-router.post('/register/industry', registerIndustry);
-router.post('/register/faculty', registerFaculty);
-router.post('/register/institution', registerInstitution);
+router.post('/logout', logout);
+router.get('/me', authenticateToken, getCurrentUser);
+
+// Registration (Supports both unified /register and role-specific endpoints)
+router.post('/register', register);
+router.post('/register/:role', register);
+
+// Password recovery
 router.post('/forgot-password', forgotPassword);
+router.post('/reset-password/:token', resetPassword);
 router.post('/reset-password', resetPassword);
-router.get('/me', requireAuth, getCurrentUser);
 
 export default router;

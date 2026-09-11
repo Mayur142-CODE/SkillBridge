@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import AuthLayout from '../components/auth/AuthLayout';
 import AuthInput from '../components/auth/AuthInput';
 import PasswordInput from '../components/auth/PasswordInput';
 import Button from '../components/ui/Button';
+import { useAuth } from '../context/AuthContext';
 
 export default function IndustryRegister() {
+  const navigate = useNavigate();
+  const { register } = useAuth();
+
   const [form, setForm] = useState({
     companyName: '',
     email: '',
@@ -21,6 +25,7 @@ export default function IndustryRegister() {
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
+    if (errors.general) setErrors({ ...errors, general: '' });
   };
 
   const validate = () => {
@@ -35,7 +40,7 @@ export default function IndustryRegister() {
     return errs;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) {
@@ -43,7 +48,28 @@ export default function IndustryRegister() {
       return;
     }
     setLoading(true);
-    setTimeout(() => setLoading(false), 1500);
+    setErrors({});
+    const result = await register('industry', {
+      companyName: form.companyName,
+      email: form.email,
+      sector: form.sector || 'Information Technology',
+      contactPerson: form.contactPerson,
+      phone: form.phone,
+      website: form.website,
+      password: form.password,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      navigate('/pending-verification', {
+        state: {
+          message: result.message,
+          role: 'Industry',
+        },
+      });
+    } else {
+      setErrors({ general: result.message || 'Registration failed.' });
+    }
   };
 
   return (
@@ -51,6 +77,24 @@ export default function IndustryRegister() {
       title="Industry Registration"
       subtitle="Register your organization to discover talent and post opportunities."
     >
+      {errors.general && (
+        <div
+          className="animate-fade-in"
+          style={{
+            backgroundColor: 'rgba(209, 67, 67, 0.1)',
+            border: '1px solid rgba(209, 67, 67, 0.25)',
+            borderRadius: 'var(--radius-md)',
+            padding: '14px 16px',
+            marginBottom: 'var(--space-6)',
+            fontSize: '14px',
+            color: 'var(--color-error)',
+            fontWeight: '500',
+          }}
+        >
+          {errors.general}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} noValidate>
         <AuthInput
           label="Company Name"
