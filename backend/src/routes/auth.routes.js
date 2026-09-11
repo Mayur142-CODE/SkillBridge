@@ -6,10 +6,14 @@ import {
   getCurrentUser,
   forgotPassword,
   resetPassword,
+  getVerifiedInstitutions,
 } from '../controllers/auth.controller.js';
 import { authenticateToken } from '../middlewares/auth.middleware.js';
 
 const router = Router();
+
+// Publicly accessible verified institutions list (from Users table)
+router.get('/institutions', getVerifiedInstitutions);
 
 // Authentication
 router.post('/login', login);

@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 import { sendPasswordResetEmail } from '../services/emailService.js';
 
@@ -226,8 +227,8 @@ export const register = async (req, res, next) => {
       case 'student': {
         const {
           name,
-          university,
           institutionId,
+          university,
           rollNumber,
           studentId,
           branch,
@@ -238,18 +239,44 @@ export const register = async (req, res, next) => {
           division,
           cgpa,
         } = req.body;
-        const institutionVal = institutionId || university;
-        const idVal = studentId || rollNumber;
-        if (!name || !institutionVal) {
+
+        if (!name || !institutionId) {
           return res.status(400).json({
             success: false,
             message: 'Full Name and Institution / University are required.',
           });
         }
+
+        // Server-side validation: institutionId must be a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(institutionId)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected institution is invalid. Please select a registered institution.',
+          });
+        }
+
+        // Source of truth: Users table query (Role = Institution AND Status = Verified)
+        const verifiedInst = await User.findOne({
+          _id: institutionId,
+          role: 'institution',
+          status: 'verified',
+        });
+
+        if (!verifiedInst) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected institution is invalid or not verified. Only registered CampusVault institutions are permitted.',
+          });
+        }
+
+        const institutionDisplayName = verifiedInst.institutionProfile?.institutionName || verifiedInst.name;
+        const idVal = studentId || rollNumber;
+
         newUserDoc.name = name.trim();
+        newUserDoc.institutionId = verifiedInst._id;
         newUserDoc.studentProfile = {
-          institutionId: (institutionId || institutionVal).trim(),
-          university: (university || institutionVal).trim(),
+          institutionId: verifiedInst._id.toString(),
+          university: institutionDisplayName,
           rollNumber: (idVal || '').trim(),
           studentId: (idVal || '').trim(),
           branch: (program || branch || '').trim(),
@@ -266,25 +293,49 @@ export const register = async (req, res, next) => {
       case 'academician': {
         const {
           name,
-          institution,
           institutionId,
-          university,
           department,
           designation,
           facultyId,
           expertise,
         } = req.body;
-        const institutionVal = institutionId || institution || university;
-        if (!name || !institutionVal || !department) {
+
+        if (!name || !institutionId || !department) {
           return res.status(400).json({
             success: false,
             message: 'Full Name, Institution / University, and Department are required.',
           });
         }
+
+        // Server-side validation: institutionId must be a valid ObjectId
+        if (!mongoose.Types.ObjectId.isValid(institutionId)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected institution is invalid. Please select a registered institution.',
+          });
+        }
+
+        // Source of truth: Users table query (Role = Institution AND Status = Verified)
+        const verifiedInst = await User.findOne({
+          _id: institutionId,
+          role: 'institution',
+          status: 'verified',
+        });
+
+        if (!verifiedInst) {
+          return res.status(400).json({
+            success: false,
+            message: 'Selected institution is invalid or not verified. Only registered CampusVault institutions are permitted.',
+          });
+        }
+
+        const institutionDisplayName = verifiedInst.institutionProfile?.institutionName || verifiedInst.name;
+
         newUserDoc.name = name.trim();
+        newUserDoc.institutionId = verifiedInst._id;
         newUserDoc.academicianProfile = {
-          institutionId: (institutionId || institutionVal).trim(),
-          institution: (institution || university || institutionVal).trim(),
+          institutionId: verifiedInst._id.toString(),
+          institution: institutionDisplayName,
           department: department.trim(),
           designation: (designation || 'Faculty').trim(),
           facultyId: (facultyId || '').trim(),
@@ -530,6 +581,41 @@ export const resetPassword = async (req, res, next) => {
     return res.status(200).json({
       success: true,
       message: 'Password reset successfully. Please login with your new password.',
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * ═══════════════════════════════════════════════════
+ * GET /api/auth/institutions (or /api/institutions)
+ * ═══════════════════════════════════════════════════
+ * Source of truth: The existing Users table in database.
+ * Filters strictly for users with Role == 'institution' AND Status == 'verified'.
+ */
+export const getVerifiedInstitutions = async (req, res, next) => {
+  try {
+    const institutions = await User.find({
+      role: 'institution',
+      status: 'verified',
+    })
+      .select('_id name email institutionProfile')
+      .lean();
+
+    const formatted = institutions
+      .map((inst) => ({
+        id: inst._id.toString(),
+        name: inst.institutionProfile?.institutionName || inst.name || 'Unknown Institution',
+        code: inst.institutionProfile?.aisheCode || '',
+        address: inst.institutionProfile?.address || '',
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+    return res.status(200).json({
+      success: true,
+      count: formatted.length,
+      institutions: formatted,
     });
   } catch (error) {
     next(error);

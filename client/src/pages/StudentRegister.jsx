@@ -8,7 +8,6 @@ import SelectInput from '../components/auth/SelectInput';
 import InstitutionSelect from '../components/auth/InstitutionSelect';
 import ProgressIndicator from '../components/auth/ProgressIndicator';
 import Button from '../components/ui/Button';
-import { getInstitutionName } from '../data/mockInstitutions';
 
 const STEPS = [
   { label: 'Basic' },
@@ -78,7 +77,6 @@ export default function StudentRegister() {
         name: form.name,
         email: form.email,
         institutionId: form.institutionId,
-        university: getInstitutionName(form.institutionId),
         program: form.program,
         semester: form.semester,
         division: form.division,

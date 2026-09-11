@@ -6,6 +6,7 @@ import morgan from 'morgan';
 
 import connectDB from './config/db.js';
 import authRoutes from './routes/auth.routes.js';
+import { getVerifiedInstitutions } from './controllers/auth.controller.js';
 import opportunitiesRoutes from './routes/opportunities.routes.js';
 import skillsRoutes from './routes/skills.routes.js';
 import usersRoutes from './routes/users.routes.js';
@@ -48,6 +49,7 @@ app.get('/api/health', (req, res) => {
 });
 
 // ── API Routes ──
+app.get('/api/institutions', getVerifiedInstitutions);
 app.use('/api/auth', authRoutes);
 app.use('/api/opportunities', opportunitiesRoutes);
 app.use('/api/skills', skillsRoutes);

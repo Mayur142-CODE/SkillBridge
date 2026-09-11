@@ -7,7 +7,6 @@ import SelectInput from '../components/auth/SelectInput';
 import InstitutionSelect from '../components/auth/InstitutionSelect';
 import Button from '../components/ui/Button';
 import { useAuth } from '../context/AuthContext';
-import { getInstitutionName } from '../data/mockInstitutions';
 
 export default function FacultyRegister() {
   const navigate = useNavigate();
@@ -62,7 +61,6 @@ export default function FacultyRegister() {
       password: form.password,
       confirmPassword: form.confirmPassword,
       institutionId: form.institutionId,
-      institution: getInstitutionName(form.institutionId),
       department: form.department,
       designation: form.designation,
       facultyId: form.facultyId,
