@@ -36,11 +36,24 @@ import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
 import ApplicationDetailPage from './pages/student/ApplicationDetailPage';
 import StudentNotificationsPage from './pages/student/StudentNotificationsPage';
 
-// ── Other Role Dashboards (minimal shells, unchanged) ─────
 import IndustryDashboard     from './pages/dashboards/IndustryDashboard';
 import AcademicianDashboard  from './pages/dashboards/AcademicianDashboard';
 import InstitutionDashboard  from './pages/dashboards/InstitutionDashboard';
 import AdminDashboard        from './pages/dashboards/AdminDashboard';
+
+// ── Academician / Faculty Panel ─────────────────────────
+import FacultyLayout         from './components/faculty/FacultyLayout';
+import FacultyDashboardPage  from './pages/faculty/FacultyDashboardPage';
+import FacultyProfilePage    from './pages/faculty/FacultyProfilePage';
+import FacultyOpportunitiesPage from './pages/faculty/FacultyOpportunitiesPage';
+import FacultyOpportunityDetailPage from './pages/faculty/FacultyOpportunityDetailPage';
+import FacultyMentorshipPage from './pages/faculty/FacultyMentorshipPage';
+import FacultyCollaborationsPage from './pages/faculty/FacultyCollaborationsPage';
+import FacultyCollaborationDetailPage from './pages/faculty/FacultyCollaborationDetailPage';
+import FacultyApplicationsPage from './pages/faculty/FacultyApplicationsPage';
+import FacultyApplicationDetailPage from './pages/faculty/FacultyApplicationDetailPage';
+import FacultyNotificationsPage from './pages/faculty/FacultyNotificationsPage';
+import FacultyComingSoonPage from './pages/faculty/FacultyComingSoonPage';
 
 function App() {
   return (
@@ -137,38 +150,30 @@ function App() {
 
         {/* ── Academician / Faculty Panel ── */}
         <Route
-          path="/academician"
-          element={
-            <ProtectedRoute allowedRoles={['academician']}>
-              <AcademicianDashboard />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/academician/*"
-          element={
-            <ProtectedRoute allowedRoles={['academician']}>
-              <AcademicianDashboard />
-            </ProtectedRoute>
-          }
-        />
-        {/* Faculty alias */}
-        <Route
           path="/faculty"
           element={
             <ProtectedRoute allowedRoles={['academician']}>
-              <AcademicianDashboard />
+              <FacultyLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/faculty/*"
-          element={
-            <ProtectedRoute allowedRoles={['academician']}>
-              <AcademicianDashboard />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<FacultyDashboardPage />} />
+          <Route path="dashboard" element={<Navigate to="/faculty" replace />} />
+          <Route path="profile" element={<FacultyProfilePage />} />
+          <Route path="opportunities" element={<FacultyOpportunitiesPage />} />
+          <Route path="opportunities/:id" element={<FacultyOpportunityDetailPage />} />
+          <Route path="collaborations" element={<FacultyCollaborationsPage />} />
+          <Route path="collaborations/:id" element={<FacultyCollaborationDetailPage />} />
+          <Route path="mentorship" element={<FacultyMentorshipPage />} />
+          <Route path="applications" element={<FacultyApplicationsPage />} />
+          <Route path="applications/:id" element={<FacultyApplicationDetailPage />} />
+          <Route path="notifications" element={<FacultyNotificationsPage />} />
+          <Route path="*" element={<Navigate to="/faculty" replace />} />
+        </Route>
+
+        {/* Backward compatibility: redirect /academician routes to /faculty */}
+        <Route path="/academician" element={<Navigate to="/faculty" replace />} />
+        <Route path="/academician/*" element={<Navigate to="/faculty" replace />} />
 
         {/* ── Institution Panel ── */}
         <Route

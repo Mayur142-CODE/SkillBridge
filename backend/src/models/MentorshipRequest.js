@@ -49,6 +49,24 @@ const MentorshipRequestSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    topic: {
+      type: String,
+      trim: true,
+      default: 'General Academic & Career Guidance',
+    },
+    domain: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    startDate: {
+      type: Date,
+      default: null,
+    },
+    endDate: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

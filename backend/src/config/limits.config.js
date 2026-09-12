@@ -11,3 +11,9 @@ export const PROFILE_LIMITS = {
   internships: 10,
   documents: 10,
 };
+
+export const FACULTY_PROFILE_LIMITS = {
+  maxCvSize: 5 * 1024 * 1024, // 5 MB
+  maxDocuments: 10,
+  maxDocumentSize: 10 * 1024 * 1024, // 10 MB
+};

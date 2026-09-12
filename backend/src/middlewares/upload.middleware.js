@@ -12,9 +12,11 @@ const UPLOADS_ROOT = path.resolve(__dirname, '../../uploads');
 const RESUMES_DIR = path.join(UPLOADS_ROOT, 'resumes');
 const DOCUMENTS_DIR = path.join(UPLOADS_ROOT, 'documents');
 const AVATARS_DIR = path.join(UPLOADS_ROOT, 'avatars');
+const FACULTY_CV_DIR = path.join(UPLOADS_ROOT, 'faculty_cvs');
+const FACULTY_DOCS_DIR = path.join(UPLOADS_ROOT, 'faculty_docs');
 
 // Ensure upload folders exist
-[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR].forEach((dir) => {
+[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR].forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -113,4 +115,60 @@ export const uploadAvatarMiddleware = multer({
   fileFilter: avatarFileFilter,
 }).single('avatar');
 
-export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR };
+// ── Faculty CV Storage & Filter (PDF only, max 5MB) ───────────────────
+const facultyCvStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, FACULTY_CV_DIR);
+  },
+  filename: (req, file, cb) => {
+    const facultyId = req.user?._id?.toString() || 'faculty';
+    cb(null, generateSafeFilename(file, `cv_${facultyId}`));
+  },
+});
+
+const facultyCvFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype;
+  if (mime === 'application/pdf' && ext === '.pdf') {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid CV format. Only PDF files (.pdf) are allowed.'), false);
+  }
+};
+
+export const uploadFacultyCVMiddleware = multer({
+  storage: facultyCvStorage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  fileFilter: facultyCvFileFilter,
+}).single('cv');
+
+// ── Faculty Supporting Documents Storage & Filter (PDF, JPG, PNG, WEBP, max 10MB) ──
+const facultyDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, FACULTY_DOCS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const facultyId = req.user?._id?.toString() || 'faculty';
+    cb(null, generateSafeFilename(file, `fdoc_${facultyId}`));
+  },
+});
+
+const facultyDocFileFilter = (req, file, cb) => {
+  const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+  const allowedExts = ['.pdf', '.jpg', '.jpeg', '.png', '.webp'];
+  const ext = path.extname(file.originalname).toLowerCase();
+
+  if (allowedMimes.includes(file.mimetype) && allowedExts.includes(ext)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid document format. Only PDF, JPG, PNG, and WEBP files are allowed.'), false);
+  }
+};
+
+export const uploadFacultyDocMiddleware = multer({
+  storage: facultyDocStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: facultyDocFileFilter,
+}).single('file');
+
+export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR };

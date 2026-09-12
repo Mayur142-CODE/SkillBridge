@@ -79,6 +79,39 @@ const MentorProfileSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+    isMentor: {
+      type: Boolean,
+      default: true,
+      index: true,
+    },
+    mentorshipTopics: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    preferredStudentDomains: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    preferredBranches: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    mode: {
+      type: String,
+      enum: ['Online', 'Offline', 'Hybrid'],
+      default: 'Hybrid',
+    },
+    introduction: {
+      type: String,
+      trim: true,
+      default: '',
+    },
   },
   {
     timestamps: true,

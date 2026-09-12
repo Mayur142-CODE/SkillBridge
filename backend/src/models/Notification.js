@@ -8,7 +8,7 @@ import mongoose from 'mongoose';
  * mentorship requests, and system events.
  */
 
-export const NOTIFICATION_TYPES = ['application', 'opportunity', 'mentorship', 'system'];
+export const NOTIFICATION_TYPES = ['application', 'opportunity', 'mentorship', 'system', 'collaboration'];
 
 const NotificationSchema = new mongoose.Schema(
   {

@@ -5,7 +5,18 @@ export const notFound = (req, res, next) => {
 };
 
 export const errorHandler = (err, req, res, next) => {
-  const statusCode = err.status || err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+  let statusCode = err.status || err.statusCode || (res.statusCode === 200 ? 500 : res.statusCode);
+
+  if (
+    err.name === 'MulterError' ||
+    err.code === 'LIMIT_FILE_SIZE' ||
+    err.message?.includes('Invalid CV format') ||
+    err.message?.includes('Invalid resume format') ||
+    err.message?.includes('Invalid document format') ||
+    err.message?.includes('Invalid image format')
+  ) {
+    statusCode = 400;
+  }
 
   console.error(`[Error] ${err.message}`, {
     stack: process.env.NODE_ENV === 'production' ? null : err.stack

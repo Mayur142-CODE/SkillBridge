@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import Certificate from '../models/Certificate.js';
 import Enrollment from '../models/Enrollment.js';
+import { verifyFacultyCertificateByCode } from './facultyCertificate.service.js';
 
 /**
  * Certificate Service
@@ -44,13 +45,21 @@ export const issueCertificate = async (studentId, programId, enrollmentId) => {
 };
 
 /**
- * Public certificate verification (no login, no sensitive student PII)
+ * Public certificate verification (no login, no sensitive PII)
+ * Checks both Faculty Certificates and Student Program Certificates
  */
 export const verifyCertificateByCode = async (verificationCode) => {
   if (!verificationCode) {
     return null;
   }
 
+  // 1. Check Faculty Certificate first
+  const facultyCertResult = await verifyFacultyCertificateByCode(verificationCode);
+  if (facultyCertResult) {
+    return facultyCertResult;
+  }
+
+  // 2. Check Student Certificate
   const cert = await Certificate.findOne({
     verificationCode: verificationCode.trim().toUpperCase(),
   })

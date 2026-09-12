@@ -4,7 +4,8 @@ import { useAuth } from '../../context/AuthContext';
 export const ROLE_PANEL_MAP = {
   student: '/student',
   industry: '/industry',
-  academician: '/academician',
+  academician: '/faculty',
+  faculty: '/faculty',
   institution: '/institution',
   admin: '/admin',
 };

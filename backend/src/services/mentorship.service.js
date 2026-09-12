@@ -1,6 +1,7 @@
 import MentorProfile from '../models/MentorProfile.js';
 import MentorshipRequest from '../models/MentorshipRequest.js';
 import User from '../models/User.js';
+import { createNotification } from './notification.service.js';
 
 /**
  * Mentorship Service
@@ -104,6 +105,21 @@ export const createMentorshipRequest = async (studentId, mentorUserId, message) 
     status: 'Pending',
     requestedAt: new Date(),
   });
+
+  // Notify mentor of new mentorship request
+  try {
+    const studentUser = await User.findById(studentId).lean();
+    const studentName = studentUser?.name || 'A student';
+    await createNotification({
+      userId: mentorUserId,
+      title: 'New Mentorship Request',
+      message: `${studentName} requested mentorship: "${message.trim().slice(0, 100)}${message.trim().length > 100 ? '...' : ''}"`,
+      type: 'mentorship',
+      link: '/faculty/mentorship',
+    });
+  } catch (notifErr) {
+    console.error('Failed to notify mentor:', notifErr.message);
+  }
 
   return request;
 };
