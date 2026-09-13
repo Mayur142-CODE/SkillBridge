@@ -100,6 +100,15 @@ const FacultyCollaborationSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // Phase 5 — secure industry partner association (backwards compatible).
+    // Denormalized from the linked FacultyOpportunity when known; enables
+    // DB-level industry scoping even when the collaboration's opportunity is null.
+    industryCompany: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company',
+      default: null,
+      index: true,
+    },
     institution: {
       type: String,
       trim: true,

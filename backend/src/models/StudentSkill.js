@@ -79,6 +79,10 @@ const StudentSkillSchema = new mongoose.Schema(
 
 StudentSkillSchema.index({ student: 1, skillName: 1 }, { unique: true });
 
+// Candidate-search helpers: skill-filtered matching and per-student score reads.
+StudentSkillSchema.index({ skill: 1, verified: 1, score: -1 });
+StudentSkillSchema.index({ student: 1, score: -1 });
+
 const StudentSkill = mongoose.model('StudentSkill', StudentSkillSchema);
 
 export default StudentSkill;

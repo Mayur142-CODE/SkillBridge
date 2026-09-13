@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -6,6 +7,7 @@ import { fileURLToPath } from 'url';
 import Skill from '../models/Skill.js';
 import Company from '../models/Company.js';
 import Opportunity from '../models/Opportunity.js';
+import User from '../models/User.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -17,6 +19,7 @@ const seedPhase6Data = async () => {
     if (!mongoUri) throw new Error('MONGODB_URI missing in .env');
 
     console.log('Connecting to MongoDB Atlas...');
+    await ensureNodeDns();
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB Atlas');
 
@@ -90,6 +93,13 @@ const seedPhase6Data = async () => {
       );
       companyMap.set('skillbridge-technologies', skillbridgeComp);
       companyMap.set('skillbridge technologies', skillbridgeComp);
+    }
+
+    // Link the SkillBridge Technologies partner profile to the seeded industry user
+    // so the Industry Panel dashboard can scope opportunities/applications to that account.
+    const industryUser = await User.findOne({ email: 'industry@skillbridge.dev' }).lean();
+    if (industryUser && skillbridgeComp) {
+      await Company.updateOne({ _id: skillbridgeComp._id }, { $set: { user: industryUser._id } });
     }
 
     const now = new Date();

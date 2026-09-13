@@ -1,6 +1,10 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import FacultyOpportunity from '../models/FacultyOpportunity.js';
+import FacultyCollaboration from '../models/FacultyCollaboration.js';
+import FacultyApplication from '../models/FacultyApplication.js';
+import Company from '../models/Company.js';
 import User from '../models/User.js';
 
 import path from 'path';
@@ -11,6 +15,17 @@ const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../../.env') });
 dotenv.config();
+
+// ── Phase 5: explicit industry-company links for demo opportunities ──
+// Maps a seeded FacultyOpportunity title to the slug of a registered Company.
+const COMPANY_LINKS = {
+  'National Curriculum-to-Industry Skill Alignment AI Engine': 'skillbridge-technologies',
+  'Academic Cloud Engineering & Containerized Laboratory Workflows': 'cloudcore-technologies',
+};
+
+// ── Phase 5: dedicated demo opportunities for industry-side collaboration ──
+const PHASE5_PROPOSED_OPP_TITLE = '[Phase5 Demo] Green Hydrogen Plant AI Safety Analytics Consortium';
+const PHASE5_COMPLETED_OPP_TITLE = '[Phase5 Demo] SIH Hackathon AI Algorithm Peer-Review Panel';
 
 export const SEED_FACULTY_OPPORTUNITIES = [
   // ── 1. Faculty Internships (2) ──
@@ -561,6 +576,7 @@ async function seedFacultyOpportunities() {
   }
 
   try {
+    await ensureNodeDns();
     await mongoose.connect(uri);
     console.log('📦 Connected to MongoDB Atlas for Faculty Opportunity Seeding...');
 
@@ -568,14 +584,46 @@ async function seedFacultyOpportunities() {
     const adminUser = await User.findOne({ role: 'admin' });
     const adminId = adminUser ? adminUser._id : null;
 
+    // Phase 5: resolve registered Company records for industry-partner association.
+    const companies = await Company.find().select('name slug').lean();
+    const companyMap = new Map(companies.map((c) => [c.slug.toLowerCase(), c]));
+
+    const resolveCompanyFor = (oppData) => {
+      const explicitSlug = COMPANY_LINKS[oppData.title];
+      if (explicitSlug) {
+        return companyMap.get(explicitSlug.toLowerCase()) || null;
+      }
+      if (oppData.status === 'Draft') {
+        return null; // Draft/classified opportunities are never linked to a company.
+      }
+      const partner = String(oppData.industryPartner || '').trim().toLowerCase();
+      const provider = String(oppData.provider || '').trim().toLowerCase();
+      if (!partner && !provider) {
+        return null;
+      }
+      return (
+        companies.find((c) => c.name.trim().toLowerCase() === partner || c.slug.toLowerCase() === partner) ||
+        companies.find((c) => c.name.trim().toLowerCase() === provider || c.slug.toLowerCase() === provider) ||
+        null
+      );
+    };
+
     let createdCount = 0;
     let updatedCount = 0;
+    let linkedCount = 0;
 
     for (const oppData of SEED_FACULTY_OPPORTUNITIES) {
       const dataToSave = {
         ...oppData,
         createdBy: adminId,
       };
+
+      const linkedCompany = resolveCompanyFor(oppData);
+      if (linkedCompany) {
+        dataToSave.industryCompany = linkedCompany._id;
+        dataToSave.industryCompanyName = linkedCompany.name;
+        linkedCount++;
+      }
 
       const existing = await FacultyOpportunity.findOne({
         title: oppData.title,
@@ -591,6 +639,204 @@ async function seedFacultyOpportunities() {
       }
     }
 
+    // ── Phase 5: idempotent demo fixtures for the industry collaboration panel ──
+    const facultyUser = await User.findOne({ email: 'faculty@skillbridge.dev' }).lean();
+    const skillbridgeCo = companyMap.get('skillbridge-technologies');
+    const cloudcoreCo = companyMap.get('cloudcore-technologies');
+    const fixtureCounts = { opportunities: 0, collaborations: 0, applications: 0 };
+
+    if (facultyUser && skillbridgeCo) {
+      const anchor = await FacultyOpportunity.findOne({
+        title: 'National Curriculum-to-Industry Skill Alignment AI Engine',
+      });
+      const cloudOpp = await FacultyOpportunity.findOne({
+        title: 'Academic Cloud Engineering & Containerized Laboratory Workflows',
+      });
+
+      // Dedicated demo collaboration opportunities (skip if already present).
+      const proposedOpp =
+        (await FacultyOpportunity.findOne({ title: PHASE5_PROPOSED_OPP_TITLE })) ||
+        (await FacultyOpportunity.create({
+          title: PHASE5_PROPOSED_OPP_TITLE,
+          type: 'Live Industry Project',
+          description:
+            'Proposed industry collaboration to co-develop predictive safety analytics for green hydrogen production plants using IoT telemetry and federated model training.',
+          provider: 'SkillBridge National Consortium',
+          industryPartner: skillbridgeCo.name,
+          industryCompany: skillbridgeCo._id,
+          industryCompanyName: skillbridgeCo.name,
+          institution: 'National Council for Hydrogen Mission',
+          domain: 'Artificial Intelligence',
+          requiredExpertise: ['Internet of Things', 'Machine Learning', 'Data Science'],
+          preferredExpertise: ['Time Series Analysis', 'Federated Learning'],
+          duration: '6 Months',
+          startDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() + 240 * 24 * 60 * 60 * 1000),
+          mode: 'Hybrid',
+          location: 'Chennai Hydrogen Hub / Remote',
+          capacity: 4,
+          applicationDeadline: new Date(Date.now() + 120 * 24 * 60 * 60 * 1000),
+          status: 'Proposed',
+          createdBy: adminId,
+        })) && (await FacultyOpportunity.findOne({ title: PHASE5_PROPOSED_OPP_TITLE }));
+
+      if (proposedOpp) fixtureCounts.opportunities++;
+
+      const completedOpp =
+        (await FacultyOpportunity.findOne({ title: PHASE5_COMPLETED_OPP_TITLE })) ||
+        (await FacultyOpportunity.create({
+          title: PHASE5_COMPLETED_OPP_TITLE,
+          type: 'Innovation Challenge',
+          description:
+            'Completed national peer-review panel where faculty experts audited SIH hackathon AI solution architectures for robustness, fairness, and production-readiness.',
+          provider: 'SkillBridge National Consortium',
+          industryPartner: skillbridgeCo.name,
+          industryCompany: skillbridgeCo._id,
+          industryCompanyName: skillbridgeCo.name,
+          institution: 'National Innovation Council',
+          domain: 'Software Engineering',
+          requiredExpertise: ['Software Engineering', 'Artificial Intelligence'],
+          preferredExpertise: ['System Design', 'Security Auditing'],
+          duration: '2 Months',
+          startDate: new Date(Date.now() - 180 * 24 * 60 * 60 * 1000),
+          endDate: new Date(Date.now() - 120 * 24 * 60 * 60 * 1000),
+          mode: 'Offline',
+          location: 'Mumbai Tech Hub',
+          capacity: 8,
+          applicationDeadline: new Date(Date.now() - 190 * 24 * 60 * 60 * 1000),
+          status: 'Completed',
+          createdBy: adminId,
+        })) && (await FacultyOpportunity.findOne({ title: PHASE5_COMPLETED_OPP_TITLE }));
+
+      if (completedOpp) fixtureCounts.opportunities++;
+
+      // Collaboration fixtures (skip existing — never clobber mutated test state).
+      if (proposedOpp && anchor && skillbridgeCo) {
+        if (!(await FacultyCollaboration.findOne({ faculty: facultyUser._id, opportunity: proposedOpp._id }))) {
+          await FacultyCollaboration.create({
+            faculty: facultyUser._id,
+            opportunity: proposedOpp._id,
+            title: proposedOpp.title,
+            type: proposedOpp.type,
+            role: 'Lead Proposer / Coordinator',
+            status: 'Proposed',
+            joinedAt: new Date(),
+            startDate: proposedOpp.startDate,
+            endDate: proposedOpp.endDate,
+            industryPartner: proposedOpp.industryPartner,
+            industryCompany: skillbridgeCo._id,
+            institution: proposedOpp.institution,
+            domain: proposedOpp.domain,
+            mode: proposedOpp.mode,
+            location: proposedOpp.location,
+            description: proposedOpp.description,
+            completionStatus: 'Pending',
+          });
+          fixtureCounts.collaborations++;
+        }
+        if (!(await FacultyCollaboration.findOne({ faculty: facultyUser._id, opportunity: anchor._id }))) {
+          await FacultyCollaboration.create({
+            faculty: facultyUser._id,
+            opportunity: anchor._id,
+            title: anchor.title,
+            type: anchor.type,
+            role: 'Faculty Project Lead',
+            status: 'Accepted',
+            joinedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+            startDate: anchor.startDate,
+            endDate: anchor.endDate,
+            industryPartner: anchor.industryPartner,
+            industryCompany: skillbridgeCo._id,
+            institution: anchor.institution,
+            domain: anchor.domain,
+            mode: anchor.mode,
+            location: anchor.location,
+            description: anchor.description,
+            progress: 20,
+            completionStatus: 'In Progress',
+          });
+          fixtureCounts.collaborations++;
+        }
+        if (completedOpp && !(await FacultyCollaboration.findOne({ faculty: facultyUser._id, opportunity: completedOpp._id }))) {
+          await FacultyCollaboration.create({
+            faculty: facultyUser._id,
+            opportunity: completedOpp._id,
+            title: completedOpp.title,
+            type: completedOpp.type,
+            role: 'Faculty Peer Reviewer',
+            status: 'Completed',
+            joinedAt: new Date(Date.now() - 200 * 24 * 60 * 60 * 1000),
+            startDate: completedOpp.startDate,
+            endDate: completedOpp.endDate,
+            industryPartner: completedOpp.industryPartner,
+            industryCompany: skillbridgeCo._id,
+            institution: completedOpp.institution,
+            domain: completedOpp.domain,
+            mode: completedOpp.mode,
+            location: completedOpp.location,
+            description: completedOpp.description,
+            progress: 100,
+            completionStatus: 'Completed',
+            completionDate: completedOpp.endDate,
+          });
+          fixtureCounts.collaborations++;
+        }
+      }
+
+      // Application fixtures (unique faculty+opportunity index; skip if present).
+      if (anchor && skillbridgeCo && !(await FacultyApplication.findOne({ faculty: facultyUser._id, opportunity: anchor._id }))) {
+        await FacultyApplication.create({
+          faculty: facultyUser._id,
+          opportunity: anchor._id,
+          status: 'Applied',
+          coverMessage:
+            'I lead the AI curriculum group at my institute and would like to co-build the national curriculum-to-industry skill alignment pipeline with the SkillBridge consortium.',
+          matchScore: 87,
+          matchedSkills: ['Artificial Intelligence', 'Natural Language Processing', 'Curriculum Design'],
+          missingSkills: [],
+          submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+          statusHistory: [
+            {
+              status: 'Applied',
+              timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+              actor: 'System',
+              note: 'Application submitted successfully.',
+            },
+          ],
+        });
+        fixtureCounts.applications++;
+      }
+
+      if (cloudOpp && cloudcoreCo && !(await FacultyApplication.findOne({ faculty: facultyUser._id, opportunity: cloudOpp._id }))) {
+        await FacultyApplication.create({
+          faculty: facultyUser._id,
+          opportunity: cloudOpp._id,
+          status: 'Rejected',
+          coverMessage:
+            'Requesting participation in the containerized laboratory curricula workshop for our university teaching labs.',
+          matchScore: 71,
+          matchedSkills: ['Linux', 'Docker', 'DevOps'],
+          missingSkills: ['Bash Scripting'],
+          submittedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+          statusHistory: [
+            {
+              status: 'Applied',
+              timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+              actor: 'System',
+              note: 'Application submitted successfully.',
+            },
+            {
+              status: 'Rejected',
+              timestamp: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+              actor: 'CloudCore Technologies',
+              note: 'Slots allocated to regional consortium partners for this cycle.',
+            },
+          ],
+        });
+        fixtureCounts.applications++;
+      }
+    }
+
     const totalInDb = await FacultyOpportunity.countDocuments();
     const openInDb = await FacultyOpportunity.countDocuments({ status: 'Open' });
     const draftInDb = await FacultyOpportunity.countDocuments({ status: 'Draft' });
@@ -601,6 +847,8 @@ async function seedFacultyOpportunities() {
 ═══════════════════════════════════════════════════
 ✨ Created:           ${createdCount}
 🔄 Updated:           ${updatedCount}
+🔗 Company-linked:    ${linkedCount}
+📌 Phase 5 fixtures:  ${fixtureCounts.opportunities} opportunities · ${fixtureCounts.collaborations} collaborations · ${fixtureCounts.applications} applications
 📊 Total in DB:       ${totalInDb}
 🟢 Open / Public:     ${openInDb}
 🔒 Draft / Private:   ${draftInDb}

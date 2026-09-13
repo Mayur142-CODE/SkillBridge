@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -18,6 +19,7 @@ const seedPhase3Data = async () => {
     if (!mongoUri) throw new Error('MONGODB_URI missing in .env');
 
     console.log('Connecting to MongoDB Atlas...');
+    await ensureNodeDns();
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB Atlas');
 

@@ -153,6 +153,9 @@ const UserSchema = new mongoose.Schema(
   }
 );
 
+// Compound index: candidate search narrows to verified students up-front.
+UserSchema.index({ role: 1, status: 1 });
+
 // Pre-save middleware for bcrypt password hashing
 UserSchema.pre('save', async function () {
   if (!this.isModified('password')) return;

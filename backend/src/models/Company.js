@@ -7,6 +7,119 @@ import mongoose from 'mongoose';
  * Registered and development industry partner profiles used for
  * skill-compatibility matching. Identifies alignment without fabricating active job postings.
  */
+
+// ── Phase 2: Compliance enums & sub-schemas ────────────────────────────
+export const INDUSTRY_COMPLIANCE_DOCUMENT_CATEGORIES = [
+  'Registration / Incorporation Proof',
+  'GST Certificate',
+  'Authorized Signatory Proof',
+  'Statutory Supporting Document',
+  'Other',
+];
+
+export const COMPLIANCE_STATUSES = ['not_submitted', 'submitted', 'verified', 'rejected'];
+export const COMPLIANCE_DOC_STATUSES = ['submitted', 'verified', 'rejected'];
+
+// Embedded schema: a single uploaded compliance/supporting document
+const ComplianceDocumentSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: [true, 'Document title is required'],
+      trim: true,
+      maxlength: [150, 'Document title cannot exceed 150 characters'],
+    },
+    category: {
+      type: String,
+      enum: {
+        values: INDUSTRY_COMPLIANCE_DOCUMENT_CATEGORIES,
+        message: '{VALUE} is not a valid compliance document category',
+      },
+      default: 'Statutory Supporting Document',
+    },
+    filename: {
+      type: String,
+      required: true,
+    },
+    originalName: {
+      type: String,
+      required: true,
+    },
+    path: {
+      type: String,
+      required: true,
+    },
+    mimeType: {
+      type: String,
+      required: true,
+    },
+    size: {
+      type: Number,
+      required: true,
+    },
+    uploadedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    status: {
+      type: String,
+      enum: {
+        values: COMPLIANCE_DOC_STATUSES,
+        message: '{VALUE} is not a valid document status',
+      },
+      default: 'submitted', // honest default — never auto-verified
+    },
+  },
+  { _id: true }
+);
+
+// Embedded schema: company compliance & verification block (Phase 2)
+const CompanyComplianceSchema = new mongoose.Schema(
+  {
+    cin: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: '',
+      maxlength: [21, 'CIN cannot exceed 21 characters'],
+    },
+    gstin: {
+      type: String,
+      trim: true,
+      uppercase: true,
+      default: '',
+      maxlength: [15, 'GSTIN cannot exceed 15 characters'],
+    },
+    signatory: {
+      name: { type: String, trim: true, maxlength: [120, 'Signatory name cannot exceed 120 characters'], default: '' },
+      designation: { type: String, trim: true, maxlength: [120, 'Designation cannot exceed 120 characters'], default: '' },
+      contactEmail: { type: String, trim: true, lowercase: true, maxlength: [120, 'Email cannot exceed 120 characters'], default: '' },
+      contactPhone: { type: String, trim: true, maxlength: [20, 'Phone cannot exceed 20 characters'], default: '' },
+    },
+    status: {
+      type: String,
+      enum: {
+        values: COMPLIANCE_STATUSES,
+        message: '{VALUE} is not a valid compliance status',
+      },
+      default: 'not_submitted',
+    },
+    submittedAt: {
+      type: Date,
+      default: null,
+    },
+    updatedAt: {
+      type: Date,
+      default: null,
+    },
+    documents: {
+      type: [ComplianceDocumentSchema],
+      default: [],
+    },
+  },
+  { _id: false }
+);
+
 const CompanyPreferredSkillSchema = new mongoose.Schema(
   {
     skill: {
@@ -104,6 +217,10 @@ const CompanySchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
       default: null,
+    },
+    compliance: {
+      type: CompanyComplianceSchema,
+      default: () => ({}),
     },
   },
   {

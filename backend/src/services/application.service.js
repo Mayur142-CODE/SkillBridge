@@ -11,6 +11,18 @@ import { createNotification } from './notification.service.js';
  */
 
 /**
+ * Strip the industry-only employerNotes field from any document returned to
+ * a student. Phase 4 ATS adds private employer screening notes to the real
+ * Application model; they must NEVER leak through student-facing APIs.
+ */
+const withoutEmployerNotes = (doc) => {
+  if (!doc) return doc;
+  const copy = { ...doc };
+  delete copy.employerNotes;
+  return copy;
+};
+
+/**
  * Get paginated applications for the authenticated student
  */
 export const getStudentApplications = async (studentId, queryParams = {}) => {
@@ -45,7 +57,7 @@ export const getStudentApplications = async (studentId, queryParams = {}) => {
     query.opportunity = { $in: oppIds };
   }
 
-  const [applications, total] = await Promise.all([
+  const [applicationsFound, total] = await Promise.all([
     Application.find(query)
       .populate({
         path: 'opportunity',
@@ -57,6 +69,8 @@ export const getStudentApplications = async (studentId, queryParams = {}) => {
       .lean(),
     Application.countDocuments(query),
   ]);
+
+  const applications = applicationsFound.map(withoutEmployerNotes);
 
   return {
     applications,
@@ -94,7 +108,7 @@ export const getApplicationDetail = async (studentId, applicationId) => {
     throw err;
   }
 
-  return application;
+  return withoutEmployerNotes(application);
 };
 
 /**
@@ -151,5 +165,5 @@ export const withdrawApplication = async (studentId, applicationId, { reason = '
     link: `/student/applications/${application._id}`,
   });
 
-  return application;
+  return withoutEmployerNotes(application.toObject());
 };

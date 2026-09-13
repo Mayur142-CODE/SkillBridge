@@ -4,6 +4,7 @@ import FacultyCollaboration, {
 } from '../models/FacultyCollaboration.js';
 import FacultyOpportunity from '../models/FacultyOpportunity.js';
 import FacultyProfile from '../models/FacultyProfile.js';
+import Company from '../models/Company.js';
 import User from '../models/User.js';
 import {
   calculateFacultyExpertiseMatch,
@@ -354,6 +355,7 @@ export const joinCollaboration = async (facultyUserId, opportunityId, role) => {
     startDate: opportunity.startDate,
     endDate: opportunity.endDate,
     industryPartner: opportunity.industryPartner || opportunity.provider,
+    industryCompany: opportunity.industryCompany || null,
     institution: opportunity.institution || facultyProfile?.institution || 'SkillBridge Partner',
     domain: opportunity.domain,
     mode: opportunity.mode,
@@ -386,6 +388,48 @@ export const joinCollaboration = async (facultyUserId, opportunityId, role) => {
 };
 
 /**
+ * Resolve the intended industry partner Company for a faculty-lead proposal.
+ *
+ * Priority:
+ *  1. Explicit `industryCompanyId` supplied by the proposal (validated against Company).
+ *  2. Best-effort name lookup of the free-text `industryPartner` against
+ *     registered Company records (normalized exact match, then slug match).
+ *
+ * Returns { industryCompany, industryCompanyName } — never throws for a
+ * missing/unmatched company (the free-text partner string remains authoritative
+ * for display). This is a purely additive, backwards-compatible behaviour.
+ */
+const resolveProposalCompany = async (industryPartner, industryCompanyId) => {
+  let targetCompany = null;
+
+  if (industryCompanyId) {
+    const candidate = await Company.findById(industryCompanyId).lean();
+    if (candidate && candidate.active !== false) {
+      targetCompany = candidate;
+    }
+  }
+
+  if (!targetCompany && industryPartner) {
+    const partner = String(industryPartner).trim().toLowerCase();
+    if (partner) {
+      const candidates = await Company.find({ active: true })
+        .select('name slug')
+        .lean();
+      targetCompany =
+        candidates.find((c) => c.name.trim().toLowerCase() === partner) ||
+        candidates.find((c) => c.slug === partner) ||
+        candidates.find((c) => c.slug.includes(partner) || partner.includes(c.slug)) ||
+        null;
+    }
+  }
+
+  return {
+    industryCompany: targetCompany?._id || null,
+    industryCompanyName: targetCompany ? targetCompany.name : String(industryPartner || '').trim(),
+  };
+};
+
+/**
  * Propose a new collaboration initiative
  */
 export const proposeCollaboration = async (facultyUserId, proposalData) => {
@@ -400,6 +444,7 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
     endDate,
     capacity = 10,
     industryPartner = '',
+    industryCompanyId = null,
     requiredExpertise = [],
     preferredExpertise = [],
   } = proposalData;
@@ -430,6 +475,7 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
 
   const facultyProfile = await FacultyProfile.findOne({ user: facultyUserId }).lean();
   const institutionName = facultyProfile?.institution || 'Academic Partner Institution';
+  const partnerCompany = await resolveProposalCompany(industryPartner, industryCompanyId);
 
   // 1. Create a FacultyOpportunity with status 'Proposed' (never self-approved)
   const proposedOpportunity = await FacultyOpportunity.create({
@@ -438,6 +484,8 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
     description: description.trim(),
     provider: institutionName,
     industryPartner: industryPartner.trim(),
+    industryCompany: partnerCompany.industryCompany,
+    industryCompanyName: partnerCompany.industryCompanyName,
     institution: institutionName,
     domain: domain.trim(),
     requiredExpertise: Array.isArray(requiredExpertise)
@@ -469,6 +517,7 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
     startDate: proposedOpportunity.startDate,
     endDate: proposedOpportunity.endDate,
     industryPartner: proposedOpportunity.industryPartner,
+    industryCompany: partnerCompany.industryCompany,
     institution: institutionName,
     domain: proposedOpportunity.domain,
     mode: proposedOpportunity.mode,

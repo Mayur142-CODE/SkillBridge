@@ -74,6 +74,40 @@ const MentorFeedbackItemSchema = new mongoose.Schema(
   { _id: true }
 );
 
+/**
+ * Employer Note Schema (Phase 4 — Industry ATS)
+ *
+ * Private screening notes written by the industry partner. Distinct from
+ * MentorFeedbackItemSchema (faculty mentor feedback) on purpose — employer
+ * screening notes are industry-only and MUST NOT leak through student-facing
+ * APIs (application.service.js strips this field from every student response).
+ */
+const EmployerNoteSchema = new mongoose.Schema(
+  {
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    createdByName: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    note: {
+      type: String,
+      required: [true, 'Note text is required'],
+      trim: true,
+      maxlength: [2000, 'Note cannot exceed 2000 characters'],
+    },
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: true }
+);
+
 const ApplicationSchema = new mongoose.Schema(
   {
     student: {
@@ -150,6 +184,10 @@ const ApplicationSchema = new mongoose.Schema(
       },
     ],
     mentorFeedback: [MentorFeedbackItemSchema],
+    employerNotes: {
+      type: [EmployerNoteSchema],
+      default: [],
+    },
     internshipCompletion: {
       completionStatus: {
         type: String,

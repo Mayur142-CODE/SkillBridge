@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import User from '../models/User.js';
 
 dotenv.config();
@@ -102,6 +103,7 @@ async function seedUsers() {
 
   try {
     console.log('Seeding development users...\n');
+    await ensureNodeDns();
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 10000 });
 
     for (const seedItem of SEED_USERS) {

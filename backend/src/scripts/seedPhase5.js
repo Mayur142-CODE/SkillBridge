@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import Skill from '../models/Skill.js';
 import LearningProgram from '../models/LearningProgram.js';
 import User from '../models/User.js';
@@ -20,6 +21,7 @@ async function seedPhase5() {
     console.log('======================================================\n');
 
     console.log('Connecting to MongoDB Atlas...');
+    await ensureNodeDns();
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB Atlas');
 

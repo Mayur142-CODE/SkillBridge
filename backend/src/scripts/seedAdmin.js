@@ -1,5 +1,6 @@
 import dotenv from 'dotenv';
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import User from '../models/User.js';
 
 dotenv.config();
@@ -14,6 +15,7 @@ const seedAdmin = async () => {
 
   try {
     console.log('Connecting to MongoDB for admin seeding...');
+    await ensureNodeDns();
     await mongoose.connect(uri, { serverSelectionTimeoutMS: 8000 });
     console.log('Connected to database.');
 

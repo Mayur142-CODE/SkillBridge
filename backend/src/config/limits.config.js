@@ -17,3 +17,8 @@ export const FACULTY_PROFILE_LIMITS = {
   maxDocuments: 10,
   maxDocumentSize: 10 * 1024 * 1024, // 10 MB
 };
+
+export const INDUSTRY_PROFILE_LIMITS = {
+  maxComplianceDocuments: 10,
+  maxComplianceDocumentSize: 10 * 1024 * 1024, // 10 MB
+};

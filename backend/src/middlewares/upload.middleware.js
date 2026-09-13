@@ -14,9 +14,10 @@ const DOCUMENTS_DIR = path.join(UPLOADS_ROOT, 'documents');
 const AVATARS_DIR = path.join(UPLOADS_ROOT, 'avatars');
 const FACULTY_CV_DIR = path.join(UPLOADS_ROOT, 'faculty_cvs');
 const FACULTY_DOCS_DIR = path.join(UPLOADS_ROOT, 'faculty_docs');
+const INDUSTRY_DOCS_DIR = path.join(UPLOADS_ROOT, 'industry_docs');
 
 // Ensure upload folders exist
-[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR].forEach((dir) => {
+[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR].forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -171,4 +172,21 @@ export const uploadFacultyDocMiddleware = multer({
   fileFilter: facultyDocFileFilter,
 }).single('file');
 
-export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR };
+// ── Industry Compliance / Supporting Documents (PDF, JPG, PNG, WEBP, max 10MB) ──
+const industryDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, INDUSTRY_DOCS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const companyUserId = req.user?._id?.toString() || 'industry';
+    cb(null, generateSafeFilename(file, `cdoc_${companyUserId}`));
+  },
+});
+
+export const uploadIndustryComplianceDocMiddleware = multer({
+  storage: industryDocStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: facultyDocFileFilter, // same accepted formats: PDF, JPG, PNG, WEBP
+}).single('file');
+
+export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR };

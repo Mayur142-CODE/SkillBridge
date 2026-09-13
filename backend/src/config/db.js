@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ensureNodeDns } from './dns.js';
 
 const connectDB = async () => {
   const uri = process.env.MONGODB_URI;
@@ -9,6 +10,7 @@ const connectDB = async () => {
   }
 
   try {
+    await ensureNodeDns();
     const conn = await mongoose.connect(uri, {
       serverSelectionTimeoutMS: 8000,
     });

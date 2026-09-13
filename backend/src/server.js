@@ -12,6 +12,7 @@ import skillsRoutes from './routes/skills.routes.js';
 import usersRoutes from './routes/users.routes.js';
 import studentRoutes from './routes/student.routes.js';
 import facultyRoutes from './routes/faculty.routes.js';
+import industryRoutes from './routes/industry.routes.js';
 import portfolioRoutes from './routes/portfolio.routes.js';
 import { verifyPublicCertificate } from './controllers/certificate.controller.js';
 import { notFound, errorHandler } from './middlewares/errorHandler.js';
@@ -57,6 +58,7 @@ app.get('/api/institutions', getVerifiedInstitutions);
 app.use('/api/auth', authRoutes);
 app.use('/api/student', studentRoutes);       // Student Panel — auth+role guarded inside routes file
 app.use('/api/faculty', facultyRoutes);       // Academician / Faculty Panel — auth+role guarded inside routes file
+app.use('/api/industry', industryRoutes);     // Industry Panel — auth+role guarded inside routes file
 app.use('/api/portfolio', portfolioRoutes);   // Public Student Portfolio (sanitized, public only)
 app.get('/api/certificates/verify/:verificationCode', verifyPublicCertificate); // Public Certificate Verification
 app.get('/api/certificate/verify/:verificationCode', verifyPublicCertificate);  // Singular alias

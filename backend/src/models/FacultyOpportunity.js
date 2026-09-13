@@ -74,6 +74,22 @@ const FacultyOpportunitySchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    // Phase 5 — secure industry partner association (backwards compatible).
+    // Resolves the intended partner to a real Company record so the Industry
+    // Panel can authorize discovery/actions server-side. Defaults to null for
+    // legacy records; the free-text industryPartner field is unchanged.
+    industryCompany: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Company',
+      default: null,
+      index: true,
+    },
+    industryCompanyName: {
+      type: String,
+      trim: true,
+      maxlength: [120, 'Partner company name cannot exceed 120 characters'],
+      default: '',
+    },
     institution: {
       type: String,
       trim: true,

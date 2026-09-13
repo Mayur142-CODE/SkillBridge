@@ -85,22 +85,22 @@ SkillBridge is organized as a decoupled monorepo structured into a Node.js/Expre
 - **Phase 6 (Data-Driven Dashboard Aggregation)**: Live aggregation command center at `/faculty` summarizing profile status, applications pipeline, recommended calls, mentorship status, active collaborations, certificates, and alerts directly from MongoDB.
 - **Design System & UI/UX Polish**: 1400px harmonized container system, Plum-soft (`#4A3260`) active sidebar navigation, canonical palette compliance (0 non-canonical hexes), 44px form controls with Plum focus rings, themed segmented tabs, and dedicated Notifications view (`/faculty/notifications`).
 
+#### 4. Industry Partner Panel (Phases 1–6 + UI/UX Polish — 100% Complete)
+- **Phase 1 (Dashboard & Core Shell)**: Authenticated session enforcement, role protection, responsive shell, company overview hero, key performance indicators (active & draft opportunities, applications received, unread notifications), opportunities summary, applications tracking pipeline (`Applied → Shortlisted → Interview → Selected → Completed`), and recent notifications at `/industry`.
+- **Phase 2 (Company Profile & Compliance)**: Company entity details, compliance information (CIN, GSTIN, authorized signatory) with submitted → pending verification → compliant status, and a supporting documents vault (incorporation & GST certificates) with upload, preview, and removal.
+- **Phase 3 (Opportunity Management)**: Post, edit, and publish internships, campus placement drives, and innovation challenges; required & preferred skill matrices with target and minimum scores, status management, filtering, search, and pagination.
+- **Phase 4 (Applicant Tracking System)**: Screening pipeline with deterministic skill-match scores and matched/missing skill breakdowns, application status transitions recorded in an audited status timeline, private screening notes, interview scheduling (round, mode, duration, interviewer, meeting link/venue) with complete/cancel/reschedule, and offer rollout (type, stipend, work mode, joining date, terms).
+- **Phase 5 (Faculty/Industry Collaborations)**: Proposals, Active, and History workspaces; review and accept joint R&D proposals submitted by faculty, lifecycle actions (`Approved → Active → Completed/Cancelled`), progress tracking, and faculty application review with resume access and status timeline.
+- **Phase 6 (Candidate Search)**: Direct talent discovery over the verified student pool with name search, skill-match mode (ALL/ANY), minimum skill & assessment score filters, education filter, sorting, verified-only toggle, and privacy-gated candidate details (verified skills, completed assessments, public portfolio, resume).
+- **Design System & UI/UX Polish**: Full alignment with the Student Panel design system — ember primary actions, plum secondary accents, ivory/white surfaces, harmonized 1160px containers, themed segmented tabs, ember focus rings, and role-scoped styling with zero non-canonical hexes.
+
 ---
 
 ### What is Pending (Roadmap)
 
 The foundation, authentication, shared models, and design system are in place. The following dedicated role modules represent upcoming development phases:
 
-#### 1. Industry Panel (Phases 1–6 — Pending)
-- **Current State**: Initial shell and verified credentials summary card (`IndustryDashboard.jsx`).
-- **Upcoming Modules**:
-  - **Company Profile & Compliance**: Corporate verification (CIN, GSTIN, sector categorization, authorized signatory verification).
-  - **Opportunity Management**: Post, edit, and publish internships, campus placement drives, faculty consultancy tenders, and innovation challenges.
-  - **Applicant Tracking System (ATS)**: Review student and faculty applications, screening pipeline, interview scheduling with calendar integration, and offer rollouts.
-  - **Collaborative Project Management**: Review and accept joint R&D proposals submitted by faculty members.
-  - **Candidate Search**: Direct talent discovery via skill tags and assessment score filters.
-
-#### 2. Educational Institution Panel (Phases 1–6 — Pending)
+#### 1. Educational Institution Panel (Phases 1–6 — Pending)
 - **Current State**: Initial shell and institutional affiliation summary card (`InstitutionDashboard.jsx`).
 - **Upcoming Modules**:
   - **Institutional Profile & Accreditation**: AISHE code validation, NAAC/NBA accreditation records, department registry.
@@ -109,7 +109,7 @@ The foundation, authentication, shared models, and design system are in place. T
   - **Placement & Training (TPO) Oversight**: College-wide placement statistics, recruiter engagement metrics, and batch performance tracking.
   - **Institutional MoUs**: Manage bilateral partnerships with industry entities.
 
-#### 3. Platform Administration Panel (Phases 1–6 — Pending)
+#### 2. Platform Administration Panel (Phases 1–6 — Pending)
 - **Current State**: Initial shell and administrative identity card (`AdminDashboard.jsx`).
 - **Upcoming Modules**:
   - **User & Organization Verification**: Review and approve/reject pending Industry and Institution onboarding requests.
@@ -117,7 +117,7 @@ The foundation, authentication, shared models, and design system are in place. T
   - **Global Taxonomy Management**: Master skill dictionary, assessment question bank curation, and academic domain taxonomy.
   - **Platform Health & Audit Logs**: Real-time traffic, security access logs, and SIH compliance reports.
 
-#### 4. Real-time Infrastructure & Cloud Deployments
+#### 3. Real-time Infrastructure & Cloud Deployments
 - **WebSockets / Socket.io**: Real-time push alerts and live in-app messaging between mentors, mentees, and recruiters (currently operating via REST polling).
 - **Cloud Blob Storage**: Production integration for AWS S3 or Cloudinary for uploaded CVs, certificates, and portfolios (currently local file system).
 - **Production SMTP Service**: Live email delivery integration (AWS SES / SendGrid) for email verification and alert notifications.

@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { ensureNodeDns } from '../config/dns.js';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,6 +24,7 @@ const seedPhase2Data = async () => {
     }
 
     console.log('Connecting to MongoDB...');
+    await ensureNodeDns();
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB Atlas');
 

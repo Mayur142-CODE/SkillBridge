@@ -36,7 +36,19 @@ import StudentApplicationsPage from './pages/student/StudentApplicationsPage';
 import ApplicationDetailPage from './pages/student/ApplicationDetailPage';
 import StudentNotificationsPage from './pages/student/StudentNotificationsPage';
 
-import IndustryDashboard     from './pages/dashboards/IndustryDashboard';
+import IndustryLayout        from './components/industry/IndustryLayout';
+import IndustryDashboardPage from './pages/industry/IndustryDashboardPage';
+import IndustryProfilePage   from './pages/industry/IndustryProfilePage';
+import IndustryOpportunitiesPage from './pages/industry/IndustryOpportunitiesPage';
+import IndustryOpportunityFormPage from './pages/industry/IndustryOpportunityFormPage';
+import IndustryOpportunityDetailPage from './pages/industry/IndustryOpportunityDetailPage';
+import IndustryApplicationsPage from './pages/industry/IndustryApplicationsPage';
+import IndustryApplicationDetailPage from './pages/industry/IndustryApplicationDetailPage';
+import IndustryCollaborationsPage from './pages/industry/IndustryCollaborationsPage';
+import IndustryCollaborationDetailPage from './pages/industry/IndustryCollaborationDetailPage';
+import IndustryCollaborationApplicationPage from './pages/industry/IndustryCollaborationApplicationPage';
+import IndustryCandidatesPage from './pages/industry/IndustryCandidatesPage';
+import IndustryCandidateDetailPage from './pages/industry/IndustryCandidateDetailPage';
 import AcademicianDashboard  from './pages/dashboards/AcademicianDashboard';
 import InstitutionDashboard  from './pages/dashboards/InstitutionDashboard';
 import AdminDashboard        from './pages/dashboards/AdminDashboard';
@@ -135,18 +147,26 @@ function App() {
           path="/industry"
           element={
             <ProtectedRoute allowedRoles={['industry']}>
-              <IndustryDashboard />
+              <IndustryLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/industry/*"
-          element={
-            <ProtectedRoute allowedRoles={['industry']}>
-              <IndustryDashboard />
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<IndustryDashboardPage />} />
+          <Route path="dashboard" element={<Navigate to="/industry" replace />} />
+          <Route path="profile" element={<IndustryProfilePage />} />
+          <Route path="opportunities" element={<IndustryOpportunitiesPage />} />
+          <Route path="opportunities/new" element={<IndustryOpportunityFormPage />} />
+          <Route path="opportunities/:id" element={<IndustryOpportunityDetailPage />} />
+          <Route path="opportunities/:id/edit" element={<IndustryOpportunityFormPage />} />
+          <Route path="applications" element={<IndustryApplicationsPage />} />
+          <Route path="applications/:id" element={<IndustryApplicationDetailPage />} />
+          <Route path="collaborations" element={<IndustryCollaborationsPage />} />
+          <Route path="collaborations/applications/:id" element={<IndustryCollaborationApplicationPage />} />
+          <Route path="collaborations/:id" element={<IndustryCollaborationDetailPage />} />
+          <Route path="candidates" element={<IndustryCandidatesPage />} />
+          <Route path="candidates/:studentId" element={<IndustryCandidateDetailPage />} />
+          <Route path="*" element={<IndustryDashboardPage />} />
+        </Route>
 
         {/* ── Academician / Faculty Panel ── */}
         <Route
