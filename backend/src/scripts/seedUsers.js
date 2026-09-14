@@ -136,6 +136,37 @@ async function seedUsers() {
       }
     }
 
+    // ── Phase 1 (Institution Panel): link demo student & faculty to the ──
+    // demo institution. Enrollment is modeled through User.institutionId
+    // (ObjectId → institution User), mirrored in each account's profile.
+    const institute = await User.findOne({
+      role: 'institution',
+      email: 'institution@skillbridge.dev',
+    });
+
+    if (institute) {
+      const institutionDisplayName =
+        institute.institutionProfile?.institutionName || institute.name;
+
+      const student = await User.findOne({ email: 'student@skillbridge.dev' });
+      if (student && String(student.institutionId || '') !== String(institute._id)) {
+        student.institutionId = institute._id;
+        student.studentProfile.institutionId = institute._id.toString();
+        student.studentProfile.university = institutionDisplayName;
+        await student.save({ validateBeforeSave: false });
+        console.log(`✓ Linked student → ${institutionDisplayName}`);
+      }
+
+      const faculty = await User.findOne({ email: 'faculty@skillbridge.dev' });
+      if (faculty && String(faculty.institutionId || '') !== String(institute._id)) {
+        faculty.institutionId = institute._id;
+        faculty.academicianProfile.institutionId = institute._id.toString();
+        faculty.academicianProfile.institution = institutionDisplayName;
+        await faculty.save({ validateBeforeSave: false });
+        console.log(`✓ Linked faculty → ${institutionDisplayName}`);
+      }
+    }
+
     // Safety step: auto-verify any older test accounts that were set to pending
     const pendingUpdate = await User.updateMany(
       { status: 'pending' },

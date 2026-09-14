@@ -265,6 +265,7 @@ const validateAndBuild = async (payload) => {
     if (skillErr.validationErrors) errors.skills = skillErr.validationErrors.skills;
     else throw skillErr;
   }
+  parsed.requiredSkills = parsed.requiredSkills || [];
   parsed.requiredSkills.forEach((item) => {
     if (!['Core', 'Preferred'].includes(item.importance)) item.importance = 'Core';
     const target = Number(item.targetScore ?? 70);
@@ -281,6 +282,7 @@ const validateAndBuild = async (payload) => {
     if (skillErr.validationErrors) errors.skills = skillErr.validationErrors.skills;
     else throw skillErr;
   }
+  parsed.preferredSkills = parsed.preferredSkills || [];
   parsed.preferredSkills.forEach((item) => {
     const min = Number(item.minScore ?? 60);
     if (isNaN(min) || min < 0 || min > 100) {

@@ -477,6 +477,10 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
   const institutionName = facultyProfile?.institution || 'Academic Partner Institution';
   const partnerCompany = await resolveProposalCompany(industryPartner, industryCompanyId);
 
+  // Phase 4 — resolve the proposing faculty's institution (User.institutionId)
+  // so the institution can be notified of the proposal awaiting its review.
+  const facultyUser = await User.findById(facultyUserId).select('institutionId name').lean();
+
   // 1. Create a FacultyOpportunity with status 'Proposed' (never self-approved)
   const proposedOpportunity = await FacultyOpportunity.create({
     title: title.trim(),
@@ -540,6 +544,23 @@ export const proposeCollaboration = async (facultyUserId, proposalData) => {
     });
   } catch (notifErr) {
     console.error('Failed to send proposal notification:', notifErr.message);
+  }
+
+  // Phase 4 — notify the proposing faculty's institution that a proposal is
+  // awaiting its governance review. Purely additive; faculty-side behavior
+  // and the faculty notification above remain unchanged.
+  if (facultyUser?.institutionId) {
+    try {
+      await createNotification({
+        userId: facultyUser.institutionId,
+        title: 'New Collaboration Proposal',
+        message: `${facultyUser.name || 'A faculty member'} submitted "${proposedOpportunity.title}" (${proposedOpportunity.type}) for institutional review.`,
+        type: 'collaboration',
+        link: '/institution/faculty-governance',
+      });
+    } catch (notifErr) {
+      console.error('Failed to send institution proposal notification:', notifErr.message);
+    }
   }
 
   return collaboration;

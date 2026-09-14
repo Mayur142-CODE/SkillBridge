@@ -26,6 +26,32 @@ const StudentProfileSchema = new mongoose.Schema(
       trim: true,
       default: 'Bachelor of Technology',
     },
+    // Phase 3 — Student Roster & Verification (degree filled during
+    // institution-side enrollment / academic corrections; verification
+    // state is owned by the institution).
+    degree: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+    academicVerified: {
+      type: Boolean,
+      default: false,
+    },
+    academicVerifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    academicVerifiedAt: {
+      type: Date,
+      default: null,
+    },
+    academicVerificationNote: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     branch: {
       type: String,
       trim: true,

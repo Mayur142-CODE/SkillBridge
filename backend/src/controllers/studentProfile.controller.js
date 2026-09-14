@@ -69,10 +69,17 @@ export const getProfile = async (req, res, next) => {
         user: userId,
         phone: user.phone || '',
         education: user.studentProfile?.program || 'Bachelor of Technology',
+        degree: user.studentProfile?.degree || '',
         branch: user.studentProfile?.branch || '',
         academicYear: user.studentProfile?.academicYear || '3rd Year',
         cgpa: user.studentProfile?.cgpa || '',
         rollNumber: user.studentProfile?.rollNumber || '',
+        // Phase 3 — carry institution-side academic verification state into
+        // the standalone profile record (single source of truth is embedded).
+        academicVerified: Boolean(user.studentProfile?.academicVerified),
+        academicVerifiedBy: user.studentProfile?.academicVerifiedBy || null,
+        academicVerifiedAt: user.studentProfile?.academicVerifiedAt || null,
+        academicVerificationNote: user.studentProfile?.academicVerificationNote || null,
         portfolioSlug: slug,
         portfolioPublic: false,
       });

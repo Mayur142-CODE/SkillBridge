@@ -13,7 +13,8 @@ export const errorHandler = (err, req, res, next) => {
     err.message?.includes('Invalid CV format') ||
     err.message?.includes('Invalid resume format') ||
     err.message?.includes('Invalid document format') ||
-    err.message?.includes('Invalid image format')
+    err.message?.includes('Invalid image format') ||
+    err.message?.includes('Invalid import format')
   ) {
     statusCode = 400;
   }

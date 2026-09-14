@@ -16,6 +16,16 @@ const StudentProfileSchema = new mongoose.Schema(
     branch: { type: String, trim: true },
     academicYear: { type: String, trim: true },
     cgpa: { type: String, trim: true, default: null },
+    // Phase 3 — Student Roster & Verification
+    degree: { type: String, trim: true, default: null },
+    academicVerified: { type: Boolean, default: false },
+    academicVerifiedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
+    academicVerifiedAt: { type: Date, default: null },
+    academicVerificationNote: { type: String, trim: true, default: null },
   },
   { _id: false }
 );
@@ -34,11 +44,25 @@ const AcademicianProfileSchema = new mongoose.Schema(
 
 const InstitutionProfileSchema = new mongoose.Schema(
   {
+    // Phase 1 — identity essentials
     institutionName: { type: String, trim: true },
-    aisheCode: { type: String, trim: true },
+    aisheCode: { type: String, trim: true, uppercase: true },
     contactPerson: { type: String, trim: true },
     address: { type: String, trim: true },
     officialLetterheadUrl: { type: String, trim: true, default: '' },
+    // Phase 2 — Institutional Profile & Accreditation
+    officialName: { type: String, trim: true, default: '' },
+    institutionType: { type: String, trim: true, default: '' },
+    establishmentYear: { type: String, trim: true, default: '' },
+    affiliatedUniversity: { type: String, trim: true, default: '' },
+    city: { type: String, trim: true, default: '' },
+    state: { type: String, trim: true, default: '' },
+    pincode: { type: String, trim: true, default: '' },
+    website: { type: String, trim: true, default: '' },
+    officialEmail: { type: String, trim: true, lowercase: true, default: '' },
+    officialPhone: { type: String, trim: true, default: '' },
+    principalName: { type: String, trim: true, default: '' },
+    about: { type: String, trim: true, default: '' },
   },
   { _id: false }
 );

@@ -39,6 +39,35 @@ export const COLLABORATION_COMPLETION_STATUSES = [
   'Withdrawn',
 ];
 
+// Phase 4 — Institution Faculty Governance.
+// Additive audit trail of institution governance actions against a
+// collaboration (e.g. Proposed → Requested, Proposed/Requested → Rejected).
+// Mirrors FacultyApplication.statusHistory; purely additive & backward-compatible.
+const GovernanceHistorySchema = new mongoose.Schema(
+  {
+    status: {
+      type: String,
+      trim: true,
+      required: true,
+    },
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+    actor: {
+      type: String,
+      trim: true,
+      default: 'Institution',
+    },
+    note: {
+      type: String,
+      trim: true,
+      default: '',
+    },
+  },
+  { _id: false }
+);
+
 const FacultyCollaborationSchema = new mongoose.Schema(
   {
     faculty: {
@@ -179,6 +208,13 @@ const FacultyCollaborationSchema = new mongoose.Schema(
       min: 0,
       max: 100,
       default: null,
+    },
+    // Phase 4 — Institution Faculty Governance.
+    // Additive audit trail; optional, defaults to empty. Existing documents
+    // and all prior collaboration lifecycle behaviours are unaffected.
+    governanceHistory: {
+      type: [GovernanceHistorySchema],
+      default: [],
     },
   },
   {

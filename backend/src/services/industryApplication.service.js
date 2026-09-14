@@ -290,7 +290,7 @@ export async function getIndustryApplicationDetail(userId, applicationId) {
 export async function updateIndustryApplicationStatus(userId, applicationId, payload = {}) {
   const company = await resolveCallerCompany(userId);
   const application = await Application.findById(applicationId)
-    .populate('opportunity', 'title companyName')
+    .populate('opportunity', 'title companyName company')
     .populate('student', 'name email');
 
   if (!application) {
@@ -411,7 +411,7 @@ export async function getApplicationResume(userId, applicationId) {
 export async function scheduleInterview(userId, applicationId, payload = {}, actorName = '') {
   const company = await resolveCallerCompany(userId);
   const application = await Application.findById(applicationId)
-    .populate('opportunity', 'title companyName')
+    .populate('opportunity', 'title companyName company')
     .populate('student', 'name email');
 
   if (!application) {
@@ -563,7 +563,7 @@ export async function updateInterview(userId, applicationId, interviewId, payloa
 export async function issueOffer(userId, applicationId, payload = {}) {
   const company = await resolveCallerCompany(userId);
   const application = await Application.findById(applicationId)
-    .populate('opportunity', 'title companyName type')
+    .populate('opportunity', 'title companyName type company')
     .populate('student', 'name email');
 
   if (!application) {

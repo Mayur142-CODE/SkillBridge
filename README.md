@@ -287,6 +287,14 @@ node scratch/test_faculty_phase4.cjs    # Phase 4: Mentorship & Collaborations (
 node scratch/test_faculty_phase5.cjs    # Phase 5: Applications & Certificates (116 tests)
 node scratch/test_faculty_phase6.cjs    # Phase 6: Aggregated Metrics & Security (109 tests)
 
+# Industry Partner Panel Test Suites (Phases 1 to 6)
+node scratch/test_industry_phase1.cjs   # Phase 1: Auth & Dashboard Isolation (9 tests)
+node scratch/test_industry_phase2.cjs   # Phase 2: Company Profile & Compliance (11 tests)
+node scratch/test_industry_phase3.cjs   # Phase 3: Opportunity Management (15 tests)
+node scratch/test_industry_phase4.cjs   # Phase 4: Applicant Tracking System (31 tests)
+node scratch/test_industry_phase5.cjs   # Phase 5: Collaborations (35 tests)
+node scratch/test_industry_phase6.cjs   # Phase 6: Candidate Search (42 tests)
+
 # Student Portfolio & Validation Suite
 node scratch/test_profile_portfolio_fix.cjs # Student Profile, Documents & Max Caps (65 tests)
 ```

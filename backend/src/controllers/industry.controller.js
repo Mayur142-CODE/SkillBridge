@@ -456,6 +456,7 @@ export const viewApplicationResumeController = async (req, res, next) => {
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `inline; filename="${encodeURIComponent(resume.originalName)}"`);
+    res.setHeader('Content-Length', String(fs.statSync(filePath).size));
     const stream = fs.createReadStream(filePath);
     return stream.pipe(res);
   } catch (error) {
@@ -478,6 +479,7 @@ export const downloadApplicationResumeController = async (req, res, next) => {
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(resume.originalName)}"`);
+    res.setHeader('Content-Length', String(fs.statSync(filePath).size));
     const stream = fs.createReadStream(filePath);
     return stream.pipe(res);
   } catch (error) {

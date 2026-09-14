@@ -49,8 +49,16 @@ import IndustryCollaborationDetailPage from './pages/industry/IndustryCollaborat
 import IndustryCollaborationApplicationPage from './pages/industry/IndustryCollaborationApplicationPage';
 import IndustryCandidatesPage from './pages/industry/IndustryCandidatesPage';
 import IndustryCandidateDetailPage from './pages/industry/IndustryCandidateDetailPage';
+
+// ── Institution Panel ──────────────────────────────────
+import InstitutionLayout       from './components/institution/InstitutionLayout';
+import InstitutionDashboardPage from './pages/institution/InstitutionDashboardPage';
+import InstitutionProfilePage  from './pages/institution/InstitutionProfilePage';
+import InstitutionStudentsPage from './pages/institution/InstitutionStudentsPage';
+import InstitutionFacultyGovernancePage from './pages/institution/InstitutionFacultyGovernancePage';
+import InstitutionPlacementsPage from './pages/institution/InstitutionPlacementsPage';
+import InstitutionMousPage from './pages/institution/InstitutionMousPage';
 import AcademicianDashboard  from './pages/dashboards/AcademicianDashboard';
-import InstitutionDashboard  from './pages/dashboards/InstitutionDashboard';
 import AdminDashboard        from './pages/dashboards/AdminDashboard';
 
 // ── Academician / Faculty Panel ─────────────────────────
@@ -195,23 +203,40 @@ function App() {
         <Route path="/academician" element={<Navigate to="/faculty" replace />} />
         <Route path="/academician/*" element={<Navigate to="/faculty" replace />} />
 
-        {/* ── Institution Panel ── */}
+        {/* ── Institution Panel ──
+            ProtectedRoute checks auth + role; InstitutionLayout renders <Outlet />.
+            Phases 2–6 nav destinations point to honest placeholders until built.
+        ── */}
         <Route
           path="/institution"
           element={
             <ProtectedRoute allowedRoles={['institution']}>
-              <InstitutionDashboard />
+              <InstitutionLayout />
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/institution/*"
-          element={
-            <ProtectedRoute allowedRoles={['institution']}>
-              <InstitutionDashboard />
-            </ProtectedRoute>
-          }
-        />
+        >
+          {/* Phase 1 — Dashboard */}
+          <Route index element={<InstitutionDashboardPage />} />
+          <Route path="dashboard" element={<Navigate to="/institution" replace />} />
+
+          {/* Phase 2 — Institutional Profile & Accreditation */}
+          <Route path="profile" element={<InstitutionProfilePage />} />
+
+          {/* Phase 3 — Student Roster & Verification */}
+          <Route path="students" element={<InstitutionStudentsPage />} />
+
+          {/* Phase 4 — Faculty Governance */}
+          <Route path="faculty-governance" element={<InstitutionFacultyGovernancePage />} />
+
+          {/* Phase 5 — Placement & Training (TPO) Oversight */}
+          <Route path="placements" element={<InstitutionPlacementsPage />} />
+
+          {/* Phase 6 — Institutional MoUs */}
+          <Route path="mous" element={<InstitutionMousPage />} />
+
+          {/* Fallback: unknown child paths redirect to dashboard */}
+          <Route path="*" element={<Navigate to="/institution" replace />} />
+        </Route>
 
         {/* ── Admin Panel ── */}
         <Route

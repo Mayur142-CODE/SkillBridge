@@ -15,9 +15,11 @@ const AVATARS_DIR = path.join(UPLOADS_ROOT, 'avatars');
 const FACULTY_CV_DIR = path.join(UPLOADS_ROOT, 'faculty_cvs');
 const FACULTY_DOCS_DIR = path.join(UPLOADS_ROOT, 'faculty_docs');
 const INDUSTRY_DOCS_DIR = path.join(UPLOADS_ROOT, 'industry_docs');
+const INSTITUTION_DOCS_DIR = path.join(UPLOADS_ROOT, 'institution_docs');
+const INSTITUTION_CSV_DIR = path.join(UPLOADS_ROOT, 'institution_csv');
 
 // Ensure upload folders exist
-[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR].forEach((dir) => {
+[UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR, INSTITUTION_DOCS_DIR, INSTITUTION_CSV_DIR].forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -189,4 +191,49 @@ export const uploadIndustryComplianceDocMiddleware = multer({
   fileFilter: facultyDocFileFilter, // same accepted formats: PDF, JPG, PNG, WEBP
 }).single('file');
 
-export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR };
+// ── Institution Accreditation / Supporting Documents (PDF, JPG, PNG, WEBP, max 10MB) ──
+const institutionDocStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, INSTITUTION_DOCS_DIR);
+  },
+  filename: (req, file, cb) => {
+    const institutionUserId = req.user?._id?.toString() || 'institution';
+    cb(null, generateSafeFilename(file, `adoc_${institutionUserId}`));
+  },
+});
+
+export const uploadInstitutionDocMiddleware = multer({
+  storage: institutionDocStorage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+  fileFilter: facultyDocFileFilter, // same accepted formats: PDF, JPG, PNG, WEBP
+}).single('file');
+
+// ── Institution Bulk Student Enrollment CSV (CSV only, max 2MB) ──
+const institutionCsvStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, INSTITUTION_CSV_DIR);
+  },
+  filename: (req, file, cb) => {
+    const institutionUserId = req.user?._id?.toString() || 'institution';
+    cb(null, generateSafeFilename(file, `bulk_${institutionUserId}`));
+  },
+});
+
+const institutionCsvFileFilter = (req, file, cb) => {
+  const ext = path.extname(file.originalname).toLowerCase();
+  const mime = file.mimetype;
+  const isCsv = mime === 'text/csv' || mime === 'application/csv' || ext === '.csv';
+  if (isCsv) {
+    cb(null, true);
+  } else {
+    cb(new Error('Invalid import format. Only CSV files (.csv) are allowed.'), false);
+  }
+};
+
+export const uploadInstitutionCSVMiddleware = multer({
+  storage: institutionCsvStorage,
+  limits: { fileSize: 2 * 1024 * 1024 }, // 2 MB
+  fileFilter: institutionCsvFileFilter,
+}).single('file');
+
+export { UPLOADS_ROOT, RESUMES_DIR, DOCUMENTS_DIR, AVATARS_DIR, FACULTY_CV_DIR, FACULTY_DOCS_DIR, INDUSTRY_DOCS_DIR, INSTITUTION_DOCS_DIR, INSTITUTION_CSV_DIR };

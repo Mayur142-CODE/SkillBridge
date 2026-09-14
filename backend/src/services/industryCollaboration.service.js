@@ -424,7 +424,7 @@ const resolveScopedApplication = async (company, applicationId) => {
     throw httpError(404, 'Application not found.');
   }
   const application = await FacultyApplication.findById(applicationId)
-    .populate('opportunity', 'title type provider industryPartner industryCompanyName domain mode status')
+    .populate('opportunity', 'title type provider industryPartner industryCompanyName industryCompany domain mode status')
     .populate('faculty', 'name email')
     .populate('facultyProfile', 'institution department designation academicQualifications specialization expertiseAreas')
     .lean();
@@ -464,7 +464,7 @@ export async function getIndustryCollaborationApplicationDetail(userId, applicat
 export async function reviewIndustryCollaborationApplication(userId, applicationId, action, payload = {}) {
   const company = await resolveCallerCompany(userId);
   const application = await FacultyApplication.findById(applicationId)
-    .populate('opportunity', 'title type provider industryPartner industryCompanyName')
+    .populate('opportunity', 'title type provider industryPartner industryCompanyName industryCompany')
     .populate('faculty', 'name email');
   if (!application) {
     throw httpError(404, 'Application not found.');
