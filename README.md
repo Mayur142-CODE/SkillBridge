@@ -94,22 +94,22 @@ SkillBridge is organized as a decoupled monorepo structured into a Node.js/Expre
 - **Phase 6 (Candidate Search)**: Direct talent discovery over the verified student pool with name search, skill-match mode (ALL/ANY), minimum skill & assessment score filters, education filter, sorting, verified-only toggle, and privacy-gated candidate details (verified skills, completed assessments, public portfolio, resume).
 - **Design System & UI/UX Polish**: Full alignment with the Student Panel design system — ember primary actions, plum secondary accents, ivory/white surfaces, harmonized 1160px containers, themed segmented tabs, ember focus rings, and role-scoped styling with zero non-canonical hexes.
 
+#### 5. Educational Institution Panel (Phases 1–6 + UI/UX Polish — 100% Complete)
+- **Phase 1 (Dashboard & Core Shell)**: Authenticated session enforcement, role protection, responsive shell, live aggregation command center (institution identity, roster & verification stats, faculty governance alerts, placement overview, recent notifications), and dedicated Notifications view at `/institution`.
+- **Phase 2 (Institutional Profile & Accreditation)**: Institutional entity profile (official name, AISHE code, type, establishment year, affiliated university, contact & principal details, about), NAAC/NBA accreditation records with document vault (upload, preview, download, removal), and department registry (create, update, delete, search).
+- **Phase 3 (Student Roster & Verification)**: Student roster with search/filter/pagination, single and bulk enrollment (CSV import), academic credential verification (CGPA, degree validation) tracked in an audited verification state, manual record corrections, deactivation, and NOC issuance with document management.
+- **Phase 4 (Faculty Governance)**: Faculty registry and engagement oversight for industrial consultancy and external research engagements; approve/reject workflow with governance audit trail, faculty collaboration proposals routed to the institution for review, and engagement status timeline.
+- **Phase 5 (Placement & Training (TPO) Oversight)**: College-wide placement analytics with type/program/branch/year filters and date range, recruiter engagement metrics, and batch performance tracking.
+- **Phase 6 (Institutional MoUs)**: Bilateral partnership registry with industry entities — create, edit, activate, archive, delete; MoU document vault (upload, preview, download, removal); status/type/partner-type filters, search, sorting, and expiring-soon insights.
+- **Design System & UI/UX Polish**: Full alignment with the Student/Faculty/Industry design systems — canonical plum/ember/ivory palette, harmonized containers, themed segmented tabs, and role-scoped styling with zero non-canonical hexes.
+
 ---
 
 ### What is Pending (Roadmap)
 
 The foundation, authentication, shared models, and design system are in place. The following dedicated role modules represent upcoming development phases:
 
-#### 1. Educational Institution Panel (Phases 1–6 — Pending)
-- **Current State**: Initial shell and institutional affiliation summary card (`InstitutionDashboard.jsx`).
-- **Upcoming Modules**:
-  - **Institutional Profile & Accreditation**: AISHE code validation, NAAC/NBA accreditation records, department registry.
-  - **Student Roster & Verification**: Bulk student enrollment, academic credential verification (CGPA, degree validation), and NOC issuance.
-  - **Faculty Governance**: Approvals and oversight for faculty industrial consultancy and external research engagements.
-  - **Placement & Training (TPO) Oversight**: College-wide placement statistics, recruiter engagement metrics, and batch performance tracking.
-  - **Institutional MoUs**: Manage bilateral partnerships with industry entities.
-
-#### 2. Platform Administration Panel (Phases 1–6 — Pending)
+#### 1. Platform Administration Panel (Phases 1–6 — Pending)
 - **Current State**: Initial shell and administrative identity card (`AdminDashboard.jsx`).
 - **Upcoming Modules**:
   - **User & Organization Verification**: Review and approve/reject pending Industry and Institution onboarding requests.
@@ -117,7 +117,7 @@ The foundation, authentication, shared models, and design system are in place. T
   - **Global Taxonomy Management**: Master skill dictionary, assessment question bank curation, and academic domain taxonomy.
   - **Platform Health & Audit Logs**: Real-time traffic, security access logs, and SIH compliance reports.
 
-#### 3. Real-time Infrastructure & Cloud Deployments
+#### 2. Real-time Infrastructure & Cloud Deployments
 - **WebSockets / Socket.io**: Real-time push alerts and live in-app messaging between mentors, mentees, and recruiters (currently operating via REST polling).
 - **Cloud Blob Storage**: Production integration for AWS S3 or Cloudinary for uploaded CVs, certificates, and portfolios (currently local file system).
 - **Production SMTP Service**: Live email delivery integration (AWS SES / SendGrid) for email verification and alert notifications.
@@ -294,6 +294,14 @@ node scratch/test_industry_phase3.cjs   # Phase 3: Opportunity Management (15 te
 node scratch/test_industry_phase4.cjs   # Phase 4: Applicant Tracking System (31 tests)
 node scratch/test_industry_phase5.cjs   # Phase 5: Collaborations (35 tests)
 node scratch/test_industry_phase6.cjs   # Phase 6: Candidate Search (42 tests)
+
+# Educational Institution Panel Test Suites (Phases 1 to 6)
+node scratch/test_institution_phase1.cjs # Phase 1: Auth & Dashboard Isolation (72 tests)
+node scratch/test_institution_phase2.cjs # Phase 2: Profile & Accreditation (100 tests)
+node scratch/test_institution_phase3.cjs # Phase 3: Student Roster & Verification (131 tests)
+node scratch/test_institution_phase4.cjs # Phase 4: Faculty Governance (114 tests)
+node scratch/test_institution_phase5.cjs # Phase 5: Placement & Training (74 tests)
+node scratch/test_institution_mous.cjs    # Phase 6: Institutional MoUs (86 tests)
 
 # Student Portfolio & Validation Suite
 node scratch/test_profile_portfolio_fix.cjs # Student Profile, Documents & Max Caps (65 tests)
