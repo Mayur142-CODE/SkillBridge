@@ -24,6 +24,7 @@ export default function IndustryRegister() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
+  
   const update = (field) => (e) => {
     setForm({ ...form, [field]: e.target.value });
     if (errors[field]) setErrors({ ...errors, [field]: '' });
